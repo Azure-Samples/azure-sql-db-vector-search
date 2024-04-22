@@ -396,6 +396,4 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
-AzureSQLVectorSearch/Dataset/finefoodembeddings.csv
-AzureSQLVectorSearch/Dataset/Reviews.csv
 AzureSQLVectorSearch/src/.env
