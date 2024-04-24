@@ -6,8 +6,8 @@ We will be using a SQL notebook to demonstrate how to perform Vector Similarity 
 
 You can run the following notebook using the [SQL Kernel for Notebooks in Azure Data Studio](https://learn.microsoft.com/en-us/azure-data-studio/notebooks/notebooks-guidance#connect-to-a-kernel). 
 
-- Data set used : [Fine Foods Review Dataset](AzureSQLVectorSearch/Dataset/Reviews.csv)  <span style="background:white">is available on Kaggle. This dataset consists of reviews of fine foods from amazon.</span>
-- For this tutorial to demonstrate storing and querying vectors in SQL we will be using a smaller sample of   [finefoodembeddings.csv](AzureSQLVectorSearch/Dataset/finefoodembeddings.csv)  file that contains already generated embeddings using text-embedding-small model from Azure OpenAI. If you want to learn how to generate embeddings using Azure Open AI for your data , take a look at the tutorial here.
+- Data set used : [Fine Foods Review Dataset]([AzureSQLVectorSearch/Dataset/Reviews.csv](https://github.com/Azure-Samples/azure-sql-db-vector-search/blob/ee517d7e6e2969e1a71aa69f51db762a02af30a1/AzureSQLVectorSearch/Dataset/Reviews.csv))  <span style="background:white">is available on Kaggle. This dataset consists of reviews of fine foods from amazon.</span>
+- For this tutorial to demonstrate storing and querying vectors in SQL we will be using a smaller sample of   [finefoodembeddings.csv]([AzureSQLVectorSearch/Dataset/finefoodembeddings.csv](https://github.com/Azure-Samples/azure-sql-db-vector-search/blob/1e47abf564caa0519c823fff0761fd005ca8bbc0/AzureSQLVectorSearch/Dataset/finefoodembeddings.csv))  file that contains already generated embeddings using text-embedding-small model from Azure OpenAI. If you want to learn how to generate embeddings using Azure Open AI for your data , take a look at the tutorial here.
     
     ### <span style="color: var(--vscode-foreground);"><b>Prerequisites:</b></span>
     
@@ -19,7 +19,7 @@ You can run the following notebook using the [SQL Kernel for Notebooks in Azure 
 
     ### **Importing the data into SQLDB**
 
-Import the data from the [finefoodembeddings.csv](AzureSQLVectorSearch/Dataset/finefoodembeddings.csv) to the finefoodreviews table.
+Import the data from the [finefoodembeddings.csv]([AzureSQLVectorSearch/Dataset/finefoodembeddings.csv](https://github.com/Azure-Samples/azure-sql-db-vector-search/blob/1e47abf564caa0519c823fff0761fd005ca8bbc0/AzureSQLVectorSearch/Dataset/finefoodembeddings.csv)) to the finefoodreviews table.
 
 You can use the [SQL Server Import extension](https:\learn.microsoft.com\en-us\azure-data-studio\extensions\sql-server-import-extension) available in the [Azure Data Studio](https:\azure.microsoft.com\products\data-studio\) that converts .txt and .csv files into a SQL table . The step by the step instructions to do this can be found  [here](https:\learn.microsoft.com\en-us\azure-data-studio\extensions\sql-server-import-extension)<span style="font-size:12.0pt;font-family:&quot;Segoe UI&quot;,sans-serif;mso-fareast-font-family:
 &quot;Times New Roman&quot;;color:#161616;background:white;mso-font-kerning:0pt;
