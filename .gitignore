@@ -396,5 +396,6 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
-AzureSQLVectorSearch/src/.env
-AzureSQLVectorSearch/src/.env
+
+# Custom
+.env
