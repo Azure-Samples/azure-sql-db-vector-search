@@ -399,3 +399,4 @@ FodyWeavers.xsd
 
 # Custom
 .env
+.venv/

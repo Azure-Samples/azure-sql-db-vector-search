@@ -24,7 +24,6 @@ if __name__ == '__main__':
     print('Cleaning up the database...')
     try:
         cursor = conn.cursor()    
-        cursor.execute("DELETE FROM dbo.document_embeddings;")
         cursor.execute("DELETE FROM dbo.documents;")
         cursor.commit();        
     finally:
@@ -36,11 +35,7 @@ if __name__ == '__main__':
         
         for id, (content, embedding) in enumerate(zip(sentences, embeddings)):
             cursor.execute(f"""
-                DECLARE @id INT = ?;
-                DECLARE @content NVARCHAR(MAX) = ?;
-                DECLARE @embedding NVARCHAR(MAX) = ?;
-                INSERT INTO dbo.documents (id, content, embedding) VALUES (@id, @content, @embedding);
-                INSERT INTO dbo.document_embeddings SELECT @id, CAST([key] AS INT), CAST([value] AS FLOAT) FROM OPENJSON(@embedding);
+                INSERT INTO dbo.documents (id, content, embedding) VALUES (?, ?, JSON_ARRAY_TO_VECTOR(CAST(? AS NVARCHAR(MAX))));
             """,
             id,
             content, 
@@ -63,6 +58,8 @@ if __name__ == '__main__':
         
         results  = cursor.execute(f"""
             DECLARE @k INT = ?;
+            DECLARE @q NVARCHAR(1000) = ?;
+            DECLARE @v VARBINARY(8000) = JSON_ARRAY_TO_VECTOR(CAST(? AS NVARCHAR(MAX)));
             WITH keyword_search AS (
                 SELECT TOP(@k)
                     id,
@@ -70,15 +67,21 @@ if __name__ == '__main__':
                 FROM 
                     dbo.documents 
                 INNER JOIN 
-                    FREETEXTTABLE(dbo.documents, *, ?) AS ftt ON dbo.documents.id = ftt.[KEY]
+                    FREETEXTTABLE(dbo.documents, *, @q) AS ftt ON dbo.documents.id = ftt.[KEY]
             ),
             semantic_search AS
             (
-                SELECT 
+                SELECT TOP(@k)
                     id, 
-                    rank        
-                FROM 
-                    dbo.similar_documents(?)
+                    RANK() OVER (ORDER BY cosine_distance) AS rank
+                FROM
+                    (
+                        SELECT 
+                            id, 
+                            VECTOR_DISTANCE('cosine', @v, embedding) AS cosine_distance
+                        FROM 
+                            dbo.documents
+                    ) AS similar_documents
             )
             SELECT TOP(@k)
                 COALESCE(ss.id, ks.id) AS id,
