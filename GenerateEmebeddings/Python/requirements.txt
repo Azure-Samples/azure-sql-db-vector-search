@@ -1,0 +1,4 @@
+python-dotenv
+pyodbc
+azure-identity
+sentence-transformers
