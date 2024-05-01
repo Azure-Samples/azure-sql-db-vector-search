@@ -47,7 +47,48 @@ See the description in each sample for instructions (projects will have either a
 3.       Make sure you have an [<span style="color:#002060">Azure OpenAI</span>](https://learn.microsoft.com/en-us/azure/ai-services/openai/overview) resource created in your Azure subscription.
 
 
-# Available Samples
+# Available Samples  
+
+## [Create, store and query OpenAI embeddings in Azure SQL DB](https:\github.com\Azure-Samples\azure-sql-db-vector-search\blob\5314865140dbcb22df8d0d1a8497788f7a5477bc\VectorSearch_Notebooks\Python_Notebook_Example\Readme.md)  
+
+This Python notebook is a step by step guide that will show you:
+
+- How to create embeddings from content using the Azure OpenAI API
+- How to use Azure SQL DB as a vector database and store embeddings data in SQL & perform similarity search directly from within SQL itself
+- How to use embeddings retrieved from a vector database to augment LLM generation for a Chatbot.  You'll be able to ask queries in natural language and get answers from the OpenAI GPT model, using the data you have in Azure SQL Database.
+
+<span style="color: rgb(31, 35, 40); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, &quot;Noto Sans&quot;, Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;; font-size: 16px; background-color: rgb(255, 255, 255);">We will be using the Fine Foods Review Dataset available on Kaggle. This dataset consists of customer reviews of fine foods from Amazon&nbsp;<br></span>  <span style="font-size: 16px;"><br><br></span>
+
+
+## [Store and query OpenAI embeddings in Azure SQL DB (TSQL)](https:\github.com\Azure-Samples\azure-sql-db-vector-search\blob\5314865140dbcb22df8d0d1a8497788f7a5477bc\VectorSearch_Notebooks\SQL_Notebook_Example\Readme.md)  
+
+<span style="color: rgb(31, 35, 40); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, &quot;Noto Sans&quot;, Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;; font-size: 16px; background-color: rgb(255, 255, 255);">We will be using a&nbsp;</span>  [SQL notebook](https:\github.com\Azure-Samples\azure-sql-db-vector-search\blob\d1a3b8e723cf3f80d932588604c92f9da5ef9e65\VectorSearch_Notebooks\SQL_Notebook_Example\SQLvectorsearchnotebook.ipynb)  <span style="color: rgb(31, 35, 40); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, &quot;Noto Sans&quot;, Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;; font-size: 16px; background-color: rgb(255, 255, 255);">&nbsp;to demonstrate how to perform Vector Similarity Search in SQL DB&nbsp;<br></span>  <span style="background-color: rgb(255, 255, 255); color: rgba(0, 0, 0, 0.87); font-family: system-ui, -apple-system, blinkmacsystemfont, &quot;Segoe UI&quot;, helvetica, arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;, &quot;Segoe UI Symbol&quot;;">It showcases the power of semantic search by finding reviews that are contextually related to the search query, even if they don’t contain exact match keywords. It also demonstrates how keyword search can be used in conjunction to ensure that certain words are present in the results</span><span style="background-color: rgb(255, 255, 255); color: rgb(31, 35, 40); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, &quot;Noto Sans&quot;, Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;; font-size: 16px;">.</span>
+
+<span style="background-color: rgb(255, 255, 255); color: rgb(31, 35, 40); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, &quot;Noto Sans&quot;, Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;; font-size: 16px;"><br></span>
+
+
+## [Hybrid Search](https:\github.com\Azure-Samples\azure-sql-db-vector-search\blob\5314865140dbcb22df8d0d1a8497788f7a5477bc\GenerateEmbeddings\Python\README.md)  
+
+This sample shows how to combine Fulltext search in Azure SQL database with BM25 ranking and cosine similarity ranking to do hybrid search.
+
+In this sample the local model [multi-qa-MiniLM-L6-cos-v1](https:\huggingface.co\sentence-transformers\multi-qa-MiniLM-L6-cos-v1) to generate embeddings. The Python script `./python/hybrid_search.py` shows how to
+
+- use Python to generate the embeddings
+- do similarity search in Azure SQL database
+- use [Fulltext search in Azure SQL database with BM25 ranking](https:\learn.microsoft.com\en-us\sql\relational-databases\search\limit-search-results-with-rank?view=sql-server-ver16#ranking-of-freetexttable)
+- do re-ranking applying Reciprocal Rank Fusion (RRF) to combine the BM25 ranking with the cosine similarity ranking
+
+  
+
+## [Get Embeddings from OpenAI from Azure SQL](https:\github.com\Azure-Samples\azure-sql-db-vector-search\blob\5314865140dbcb22df8d0d1a8497788f7a5477bc\GenerateEmbeddings\T-SQL\README.md)  
+
+In this sample you'll be creating a stored procedure to easily transform text into a vector using OpenAI embedding model.
+
+<span style="color: rgb(31, 35, 40); font-family: -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, &quot;Noto Sans&quot;, Helvetica, Arial, sans-serif, &quot;Apple Color Emoji&quot;, &quot;Segoe UI Emoji&quot;; font-size: 16px; background-color: rgb(255, 255, 255);"><br></span>
+
+
+
+
 
 ## Resources
 
