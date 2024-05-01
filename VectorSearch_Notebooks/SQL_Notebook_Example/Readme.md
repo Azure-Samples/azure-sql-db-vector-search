@@ -2,9 +2,13 @@
 
 ### **Vector Similarity search in SQL DB.**
 
-We will be using a SQL notebook to demonstrate how to perform Vector Similarity Search in SQL DB.
-
+- We will be using a [SQL notebook](https://github.com/Azure-Samples/azure-sql-db-vector-search/blob/d1a3b8e723cf3f80d932588604c92f9da5ef9e65/VectorSearch_Notebooks/SQL_Notebook_Example/SQLvectorsearchnotebook.ipynb) to demonstrate how to perform Vector Similarity Search in SQL DB.
 You can run the following notebook using the [SQL Kernel for Notebooks in Azure Data Studio](https://learn.microsoft.com/en-us/azure-data-studio/notebooks/notebooks-guidance#connect-to-a-kernel). 
+
+   Alternatively , the TSQL Script is also available here
+[SQLvectorsimilaritysearch.sql](https://github.com/Azure-Samples/azure-sql-db-vector-search/blob/d1a3b8e723cf3f80d932588604c92f9da5ef9e65/VectorSearch_Notebooks/SQL_Notebook_Example/SQLvectorsimilaritysearch.sql) , Stored Procedure to get embeddings [SP_get_embeddings.sql](https://github.com/Azure-Samples/azure-sql-db-vector-search/blob/d1a3b8e723cf3f80d932588604c92f9da5ef9e65/VectorSearch_Notebooks/SQL_Notebook_Example/SP_get_embeddings.sql)
+
+
 
 - Data set used : [Fine Foods Review Dataset]([AzureSQLVectorSearch/Dataset/Reviews.csv](https://github.com/Azure-Samples/azure-sql-db-vector-search/blob/ee517d7e6e2969e1a71aa69f51db762a02af30a1/AzureSQLVectorSearch/Dataset/Reviews.csv))  <span style="background:white">is available on Kaggle. This dataset consists of reviews of fine foods from amazon.</span>
 - For this tutorial to demonstrate storing and querying vectors in SQL we will be using a smaller sample of   [finefoodembeddings.csv]([AzureSQLVectorSearch/Dataset/finefoodembeddings.csv](https://github.com/Azure-Samples/azure-sql-db-vector-search/blob/1e47abf564caa0519c823fff0761fd005ca8bbc0/AzureSQLVectorSearch/Dataset/finefoodembeddings.csv))  file that contains already generated embeddings using text-embedding-small model from Azure OpenAI. If you want to learn how to generate embeddings using Azure Open AI for your data , take a look at the tutorial here.
