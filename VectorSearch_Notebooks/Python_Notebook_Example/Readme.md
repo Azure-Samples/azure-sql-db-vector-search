@@ -1,6 +1,6 @@
 # Create, store and query OpenAI embeddings in Azure SQL DB
 
-This Python [notebook](https://github.com/Azure-Samples/azure-sql-db-vector-search/blob/3b35f74502f05585d12636f278cb4bf68a0bfca6/VectorSearch_Notebooks/Python_Notebook_Example/embeddingswithsql.ipynb) will teach you to:
+This Python [notebook](https://github.com/Azure-Samples/azure-sql-db-vector-search/blob/85f01c488a467ad57dfe99a59c9a58b3f607ee7b/VectorSearch_Notebooks/Python_Notebook_Example/embeddingswithsql.ipynb) will teach you to:
 
 - How to create embeddings from content using the Azure OpenAI API
 - How to use Azure SQL DB as a vector database and store embeddings data in SQL & perform similarity search
