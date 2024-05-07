@@ -41,11 +41,11 @@ See the description in each sample for instructions (projects will have either a
 
 #### Prerequisites
 
-1. An Azure subscription - [Create one for free](https://azure.microsoft.com/en-us/pricing/purchase-options/azure-account)
+1. An Azure subscription - [Create one for free](https://azure.microsoft.com/pricing/purchase-options/azure-account)
 
 2. Azure SQL Database - [Create one for free](https:/learn.microsoft.com/azure/azure-sql/database/free-offer?view=azuresql)
 
-3. Make sure you have an [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/overview) resource created in your Azure subscription.
+3. Make sure you have an [Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/overview) resource created in your Azure subscription.
 
 # Available Samples  
 
@@ -82,12 +82,12 @@ In this sample you'll be creating a stored procedure to easily transform text in
 
 ## Resources
 
-- [Create and deploy an Azure OpenAI Service resource](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/create-resource?pivots=web-portal)
-- [Embeddings models](https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models#embeddings-models)
+- [Create and deploy an Azure OpenAI Service resource](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal)
+- [Embeddings models](https://learn.microsoft.com/azure/ai-services/openai/concepts/models#embeddings-models)
 - [SQL AI Samples and Examples](https://aka.ms/sqlaisamples)
-- [Frequently asked questions about Copilot in Azure SQL Database (preview)](https://learn.microsoft.com/en-us/azure/azure-sql/copilot/copilot-azure-sql-faq?view=azuresql)
-- [Responsible AI FAQ for Microsoft Copilot for Azure (preview)](https://learn.microsoft.com/en-us/azure/copilot/responsible-ai-faq)
+- [Frequently asked questions about Copilot in Azure SQL Database (preview)](https://learn.microsoft.com/azure/azure-sql/copilot/copilot-azure-sql-faq?view=azuresql)
+- [Responsible AI FAQ for Microsoft Copilot for Azure (preview)](https://learn.microsoft.com/azure/copilot/responsible-ai-faq)
 
 **Trademarks**
 
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft trademarks or logos is subject to and must follow [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general). Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship. Any use of third-party trademarks or logos are subject to those third-party's policies.
+This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft trademarks or logos is subject to and must follow [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/legal/intellectualproperty/trademarks/usage/general). Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship. Any use of third-party trademarks or logos are subject to those third-party's policies.
