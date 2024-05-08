@@ -6,11 +6,13 @@ This repo hosts samples meant to help use the new **Native Vector Support in Azu
 
 ## Prerequisites
 
-1. An Azure subscription - [Create one for free](https://azure.microsoft.com/pricing/purchase-options/azure-account)
+1. An Azure subscription - [Create one for free](https://azure.microsoft.com/pricing/purchase-options/azure-account)
 
-2. Azure SQL Database - [Create one for free](https:/learn.microsoft.com/azure/azure-sql/database/free-offer?view=azuresql)
+1. Azure SQL Database - [Create one for free](https:/learn.microsoft.com/azure/azure-sql/database/free-offer?view=azuresql)
 
-3. Make sure you have an [Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/overview) resource created in your Azure subscription.
+1. Make sure you have an [Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/overview) resource created in your Azure subscription.
+
+1. Azure Data Studio - [Download for free](https://learn.microsoft.com/azure-data-studio/download-azure-data-studio) to use the notebooks offline. [SQL Server Management Studio](https://learn.microsoft.com/sql/ssms/download-sql-server-management-studio-ssms) is also an option if you don't want to use notebook offline.
 
 ## Samples  
 
