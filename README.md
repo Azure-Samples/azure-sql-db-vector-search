@@ -14,6 +14,10 @@ This repo hosts samples meant to help use the new **Native Vector Support in Azu
 
 ## Samples  
 
+### Getting Started
+
+A simple getting started to get familiar with common vector functions is available here: [Getting-Started](./Getting-Started/getting-started.ipynb)
+
 ### Embeddings
 
 Learn how to get embeddings from OpenAI directly from Azure SQL using the sample available the [`Embeddings/T-SQL`](./Embeddings/T-SQL) folder.
