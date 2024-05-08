@@ -6,6 +6,8 @@ This repo hosts samples meant to help use the new **Native Vector Support in Azu
 
 ## Prerequisites
 
+To use the provided samples make sure you have the following pre-requisites:
+
 1. An Azure subscription - [Create one for free](https://azure.microsoft.com/pricing/purchase-options/azure-account)
 
 1. Azure SQL Database - [Create one for free](https:/learn.microsoft.com/azure/azure-sql/database/free-offer?view=azuresql)
@@ -22,7 +24,7 @@ A simple getting started to get familiar with common vector functions is availab
 
 ### Embeddings
 
-Learn how to get embeddings from OpenAI directly from Azure SQL using the sample available the [`Embeddings/T-SQL`](./Embeddings/T-SQL) folder.
+Learn how to get embeddings from OpenAI directly from Azure SQL using the sample available the [Embeddings/T-SQL](./Embeddings/T-SQL) folder.
 
 ### Vector Search
 
@@ -30,7 +32,7 @@ Coming soon
 
 ### Hybrid Search
 
-The Python sample in the [`Hybrid-Search`](./Hybrid-Search/) folder shows how to combine Fulltext search in Azure SQL database with BM25 ranking and cosine similarity ranking to do hybrid search.
+The Python sample in the [Hybrid-Search](./Hybrid-Search/) folder shows how to combine Fulltext search in Azure SQL database with BM25 ranking and cosine similarity ranking to do hybrid search.
 
 ## Resources
 
