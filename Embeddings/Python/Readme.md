@@ -11,9 +11,11 @@ This Python [notebook](EmbeddingsWithSQL.ipynb) will teach you to:
 - **Vector Database Utilization**: Use Azure SQL DB to store embeddings and perform similarity searches.
 - **LLM Generation Augmentation**: Enhance language model generation with embeddings from a vector database. In this case we use the embeddings to inform a GPT-4 chat model, enabling it to provide rich, context-aware answers about products based on past customer reviews.
 
-We use the [Fine Foods Review Dataset](https:\www.kaggle.com\datasets\snap\amazon-fine-food-reviews) from Kaggle, which contains Amazon reviews of fine foods. 
+
 
 ## Dataset
+We use the Fine Foods Review Dataset from Kaggle, which contains Amazon reviews of fine foods. 
+
 - For simplicity, this tutorial uses a smaller sample [Fine Foods Review Dataset](https://github.com/Azure-Samples/azure-sql-db-vector-search/blob/a181e15337402e568f4fc66fe5941e5973171972/VectorSearch_Notebooks/Datasets/Reviews.csv) to demonstrate embedding generation. 
 - Alternatively, if **you to wish bypass embedding generation** and jump straight to similarity search in SQLDB. you can download the pre-generated [finefoodembeddings.csv](https://github.com/Azure-Samples/azure-sql-db-vector-search/blob/a181e15337402e568f4fc66fe5941e5973171972/VectorSearch_Notebooks/Datasets/finefoodembeddings.csv) 
 
