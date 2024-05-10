@@ -33,7 +33,7 @@ We use the Fine Foods Review Dataset from Kaggle, which contains Amazon reviews 
 - **Azure OpenAI Resource**: Deploy an embeddings model (e.g., `text-embedding-small` or `text-embedding-ada-002`) and a `GPT-4` model for chat completion. Refer to the [resource deployment guide](https:\learn.microsoft.com\azure\ai-services\openai\how-to\create-resource)
 - **Python**: Version 3.7.1 or later from Python.org.
 - **Python Libraries**: Install the required libraries openai, num2words, matplotlib, plotly, scipy, scikit-learn, pandas, tiktoken, and pyodbc.
-- **Jupyter Notebooks**: Use within [Azure Data Studio]((https:\learn.microsoft.com\en-us\azure-data-studio\notebooks\notebooks-guidance) or Visual Studio Code .
+- **Jupyter Notebooks**: Use within [Azure Data Studio](https:\learn.microsoft.com\en-us\azure-data-studio\notebooks\notebooks-guidance) or Visual Studio Code .
 
 Code snippets are adapted from the [Azure OpenAI Service embeddings Tutorial](https://learn.microsoft.com/en-us/azure/ai-services/openai/tutorials/embeddings?tabs=python-new%2Ccommand-line&pivots=programming-language-python)
 
