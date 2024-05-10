@@ -1,58 +1,76 @@
-# Store and query OpenAI embeddings in Azure SQL DB (TSQL)
+# Store and Query OpenAI Embeddings in Azure SQL DB (T-SQL)
 
-### **Vector Similarity search in SQL DB.**
+## Vector Similarity Search in SQL DB
 
-- We will be using a [SQL notebook](/VectorSearch_Notebooks/SQL_Notebook_Example/SQLvectorsearchnotebook.ipynb) to demonstrate how to perform Vector Similarity Search in SQL DB.
-You can run the following notebook using the [SQL Kernel for Notebooks in Azure Data Studio](https://learn.microsoft.com/azure-data-studio/notebooks/notebooks-guidance#connect-to-a-kernel). 
+Learn how to store and query vector embeddings in Azure SQL Database using T-SQL with this step-by-step tutorial.
 
-Alternatively, the TSQL Script is also available here:
-- [SQLvectorsimilaritysearch.sql](SQLvectorsimilaritysearch.sql), 
-- [SP_get_embeddings.sql](SP_get_embeddings.sql): Stored Procedure to get embeddings 
-- Data set used : [Fine Foods Review Dataset](https://github.com/Azure-Samples/azure-sql-db-vector-search/blob/a181e15337402e568f4fc66fe5941e5973171972/VectorSearch_Notebooks/Datasets/Reviews.csv)  <span style="background:white">is available on Kaggle. This dataset consists of reviews of fine foods from amazon.</span>
-- For this tutorial to demonstrate storing and querying vectors in SQL we will be using a smaller sample of   [finefoodembeddings.csv](https://github.com/Azure-Samples/azure-sql-db-vector-search/blob/a181e15337402e568f4fc66fe5941e5973171972/VectorSearch_Notebooks/Datasets/finefoodembeddings.csv
-) file that contains already generated embeddings using text-embedding-small model from Azure OpenAI. If you want to learn how to generate embeddings using Azure Open AI for your data , take a look at the tutorial here.
-    
-    ### <span style="color: var(--vscode-foreground);"><b>Prerequisites:</b></span>
-    
-    - An Azure subscription - [Create one for free](https:\github.com\Azure-Samples\azure-sql-db-vector-search\blob\622f7be47cafa261b267163a9a94af13d4fa9243\AzureSQLVectorSearch\src\https:\azure.microsoft.com\free\cognitive-services?azure-portal=true)
-    - Azure SQL Database - [Create one for free](https:\github.com\Azure-Samples\azure-sql-db-vector-search\blob\622f7be47cafa261b267163a9a94af13d4fa9243\AzureSQLVectorSearch\src\https:\learn.microsoft.com\azure\azure-sql\database\free-offer?view=azuresql)
-    - [Azure Data Studio](https:\azure.microsoft.com\products\data-studio) to connect to an Azure SQL database. 
-    - Make sure you have an [Azure OpenAI](https:\learn.microsoft.com\en-us\azure\ai-services\openai\overview) resource created in your Azure subscription. For this specific sample you have to deploy an Embedding model using the **text-embedding-small** model, the same used for the source we are using in this sample. Once that is done, you need to get the API KEY and the URL of the deployed model  [Embeddings REST API](https:\learn.microsoft.com\azure\cognitive-services\openai\reference#embeddings). And then you can use the    [sp\_invoke\_external\_rest\_endpoint](https:\learn.microsoft.com\sql\relational-databases\system-stored-procedures\sp-invoke-external-rest-endpoint-transact-sql?view=azuresqldb-current) to call the REST API from Azure SQL database.
+# Dataset
+
+- For this tutorial we use the sample data [finefoodembeddings.csv](https://github.com/Azure-Samples/azure-sql-db-vector-search/blob/a181e15337402e568f4fc66fe5941e5973171972/VectorSearch_Notebooks/Datasets/finefoodembeddings.csv) The dataset has been created using the customer reviews from FineFoods Amazon and enriching it with embeddings generated via the `text-embedding-small` Azure OpenAI model.
+The embeddings have been generated using the concatenation of Product summary and Customer Reviews (Summary + Text)
 
 
-### **Importing the data into SQLDB**
+# Prerequisites
 
-Import the data from the [finefoodembeddings.csv](https://github.com/Azure-Samples/azure-sql-db-vector-search/blob/a181e15337402e568f4fc66fe5941e5973171972/VectorSearch_Notebooks/Datasets/finefoodembeddings.csv
-)  to the finefoodreviews table.
+- **Azure Subscription**: [Create one for free](https:\azure.microsoft.com\free\cognitive-services?azure-portal=true)
+- **Azure SQL Database**: [Set up your database for free](https:\learn.microsoft.com\azure\azure-sql\database\free-offer?view=azuresql)
+- **Azure Data Studio**: Download [here](https://azure.microsoft.com/products/data-studio) and run the notebook using [SQL Kernel for Notebooks in Azure Data Studio](https://learn.microsoft.com/azure-data-studio/notebooks/notebooks-guidance#connect-to-a-kernel). 
 
-You can use the [SQL Server Import extension](https:\learn.microsoft.com\en-us\azure-data-studio\extensions\sql-server-import-extension) available in the [Azure Data Studio](https:\azure.microsoft.com\products\data-studio) that converts .txt and .csv files into a SQL table . The step by the step instructions to do this can be found  [here](https:\learn.microsoft.com\en-us\azure-data-studio\extensions\sql-server-import-extension)<span style="font-size:12.0pt;font-family:&quot;Segoe UI&quot;,sans-serif;mso-fareast-font-family:
-&quot;Times New Roman&quot;;color:#161616;background:white;mso-font-kerning:0pt;
-mso-ligatures:none;mso-fareast-language:EN-IN">.</span>
+- **Azure OpenAI Access**: Make sure you can access OpenAI service by following the documentation here: [How do I get access to Azure OpenAI?](https://learn.microsoft.com/azure/ai-services/openai/overview#how-do-i-get-access-to-azure-openai)
 
-<span style="color: var(--vscode-foreground);">You will need to <b>change the datatypes</b> to the following in the GUI window</span>
+- **Azure OpenAI Resource**: Deploy an embeddings model (e.g., `text-embedding-small` or `text-embedding-ada-002`) following the steps in [Create and deploy an Azure OpenAI Service resource](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource)
 
-<span style="font-family:&quot;Calibri&quot;,sans-serif;color:black;mso-color-alt:windowtext"><br></span>
+- For this specific sample you have to deploy an embeddings model `text-embedding-small`  model, the same used for the source we are using in this sample. 
+Once that is done, you need to get the API KEY and the URL of the deployed model  [Embeddings REST API](https:\learn.microsoft.com\azure\cognitive-services\openai\reference#embeddings). 
 
-<span style="color: #0000ff;">CREATE</span> <span style="color: #0000ff;">TABLE</span> \[dbo\].\[finefoodreviews\](
 
-    \[Id\] \[bigint\] <span style="color: #0000ff;">NOT NULL</span>,
+Then retrieve the Azure OpenAI *endpoint* and *key*:
 
-    \[Time\] \[nvarchar\](<span style="color: #09885a;">50</span>) <span style="color: #0000ff;">NULL</span>,
+![Azure OpenAI Endpoint and Key](../Assets/endpoint.png)
 
-    \[ProductId\] \[nvarchar\](<span style="color: #09885a;">500</span>) <span style="color: #0000ff;">NULL</span>,
 
-    \[UserId\] \[nvarchar\](<span style="color: #09885a;">50</span>) <span style="color: #0000ff;">NULL</span>,
 
-    \[Score\] \[bigint\] <span style="color: #0000ff;">NULL</span>,
+Then retrieve the deployed model *name* from Azure OpenAI Studio
 
-    \[Summary\] \[nvarchar\](max) <span style="color: #0000ff;">NULL</span>,
+![Deployed OpenAI Models](../Assets/modeldeployment.png)
 
-    \[Text\] \[nvarchar\](max) <span style="color: #0000ff;">NULL</span>,
+In the notebook we will [`sp_invoke_external_rest_endpoint`](https://learn.microsoft.com/sql/relational-databases/system-stored-procedures/sp-invoke-external-rest-endpoint-transact-sql) that will call the OpenAI embedding model you have deployed before
 
-    \[combined\] \[nvarchar\](max) <span style="color: #0000ff;">NULL</span>,
 
-    \[vector\] \[nvarchar\](<span style="color: #09885a;">max</span>) <span style="color: #0000ff;">NULL</span>
+# Importing Data into SQL DB
 
-) <span style="color: #0000ff;">ON</span> \[PRIMARY\] <span style="color: #0000ff;">TEXTIMAGE_ON</span> \[PRIMARY\]
+Import the data into the `finefoodreviews` table by following these steps:
+1. Utilize the [SQL Server Import extension](https:\learn.microsoft.com\azure-data-studio\extensions\sql-server-import-extension) in Azure Data Studio to convert `.txt` and `.csv` files into a SQL table.
+2. Step by Step instructions are available [here](https:\learn.microsoft.com\azure-data-studio\extensions\sql-server-import-extension)
 
-<span style="color: #0000ff;">GO</span>
+![ImportWizard](../Assets/importwizard.png)
+
+You can see the preview of the data you will be importing
+
+![ImportPreview](../Assets/wizardpreview.png)
+
+
+Make sure to modify the data types accordingly before the import process
+
+- **Id**: `bigint` NOT NULL
+- **ProductId**: `nvarchar(500)` NULL
+- **UserId**: `nvarchar(50)` NULL
+- **Time**: `nvarchar` NULL
+- **Score**: `bigint` NULL
+- **Summary**: `nvarchar` NULL
+- **Text**: `nvarchar` NULL
+- **Combined**: `nvarchar` NULL
+- **Vector**: `varchar(max)` NULL
+
+![ImportWizardDatatypes](../Assets/importwizarddatatypes.png)
+
+
+
+Once you have successfully inserted the data, we can now try our new Vector functions
+
+![ImportSuccess](../Assets/importsuccess.png)
+
+
+# Running the Notebook
+
+Execute the notebook using the [SQL Kernel for Notebooks in Azure Data Studio](https://learn.microsoft.com/azure-data-studio/notebooks/notebooks-guidance#connect-to-a-kernel). 

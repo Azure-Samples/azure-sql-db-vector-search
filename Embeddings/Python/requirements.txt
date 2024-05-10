@@ -1,0 +1,13 @@
+pyodbc
+python-dotenv
+openai 
+num2words 
+matplotlib 
+plotly 
+scipy 
+scikit-learn 
+pandas 
+tiktoken
+tokenizer
+azure-identity
+PrettyTable
