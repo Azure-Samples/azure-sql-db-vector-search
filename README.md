@@ -26,13 +26,9 @@ A simple getting started to get familiar with common vector functions is availab
 
 Learn how to get embeddings from OpenAI directly from Azure SQL using the sample available the [Embeddings/T-SQL](./Embeddings/T-SQL) folder.
 
-Generate embeddings from content using the Azure OpenAI API using this [Python sample](./Embeddings/Python)
 
 ### Vector Search
-
-Using this [Python sample](./Embeddings/Python) learn how to integrate Azure OpenAI API with Azure SQL DB to create, store, and query embeddings for advanced similarity searches and LLM generation augmentation.
-
-This [SQL notebook](./Vector-Search/)  example illustrates the implementation of Vector Similarity Search within an SQL database, highlighting the capabilities of semantic search. By leveraging vector representations of text, the system can identify reviews that share contextual similarities with a given search query, transcending the limitations of keyword exact matches. Additionally, it demonstrates the integration of Keyword Search to guarantee the inclusion of specific terms within the search outcomes.
+Coming soon
 
 ### Hybrid Search
 
