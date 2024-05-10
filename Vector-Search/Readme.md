@@ -25,11 +25,11 @@ Learn how to store and query vector embeddings in Azure SQL Database using T-SQL
 
 Then retrieve the Azure OpenAI _endpoint_ and _key_:
 
-![Azure OpenAI Endpoint and Key](..\Assets\endpoint.png)
+![Azure OpenAI Endpoint and Key](../Assets/endpoint.png)
 
 Then retrieve the deployed model _name_ from Azure OpenAI Studio
 
-![Deployed OpenAI Models](..\Assets\modeldeployment.png)
+![Deployed OpenAI Models](../Assets/modeldeployment.png)
 
 In the notebook we will use [`sp_invoke_external_rest_endpoint`](https://learn.microsoft.com/sql/relational-databases/system-stored-procedures/sp-invoke-external-rest-endpoint-transact-sql) that will call the OpenAI embedding model you have deployed before
 
@@ -40,11 +40,11 @@ Import the data into the `finefoodreviews` table by following these steps:
 1. Utilize the [SQL Server Import extension](https:\learn.microsoft.com\azure-data-studio\extensions\sql-server-import-extension) in Azure Data Studio to convert `.txt` and `.csv` files into a SQL table.
 2. Step by Step instructions are available [here](https:\learn.microsoft.com\azure-data-studio\extensions\sql-server-import-extension)
 
-![ImportWizard](..\Assets\importwizard.png)
+![ImportWizard](../Assets/importwizard.png)
 
 You can see the preview of the data you will be importing
 
-![ImportPreview](..\Assets\wizardpreview.png)
+![ImportPreview](../Assets/wizardpreview.png)
 
 Make sure to modify the data types accordingly before the import process
 
@@ -58,11 +58,11 @@ Make sure to modify the data types accordingly before the import process
 - **Combined**: `nvarchar` NULL
 - **Vector**: `nvarchar` NULL
 
-![ImportWizardDatatypes](..\Assets\importwizarddatatypes.png)
+![ImportWizardDatatypes](../Assets/importwizarddatatypes.png)
 
 Once you have successfully inserted the data, we can now try our new Vector functions
 
-![ImportSuccess](..\Assets\importsuccess.png)
+![ImportSuccess](../Assets/importsuccess.png)
 
 # Running the Notebook
 
