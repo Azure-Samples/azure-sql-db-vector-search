@@ -26,7 +26,7 @@ A simple getting started to get familiar with common vector functions is availab
 
 Learn how to get embeddings from OpenAI directly from Azure SQL using the sample available the [Embeddings/T-SQL](./Embeddings/T-SQL) folder.
 
-Learn how to generate embeddings from content using the Azure OpenAI API using the [Python sample] available at [Embeddings/Python](./Embeddings/Python)
+Learn how to generate embeddings from content using the Azure OpenAI API using the Python sample available at [Embeddings/Python](./Embeddings/Python)
 
 ### Vector Search
 
