@@ -28,6 +28,7 @@ Learn how to get embeddings from OpenAI directly from Azure SQL using the sample
 
 Learn how to generate embeddings from content using the Azure OpenAI API using the Python sample available at [Embeddings/Python](./Embeddings/Python)
 
+
 ### Vector Search
 
 The [Vector-Search](./Vector-Search) example illustrates the implementation of Vector Similarity Search within an SQL database, highlighting the capabilities of semantic search. By leveraging vector representations of text, the system can identify reviews that share contextual similarities with a given search query, transcending the limitations of keyword exact matches. Additionally, it demonstrates the integration of Keyword Search to guarantee the inclusion of specific terms within the search outcomes.
