@@ -32,14 +32,6 @@ Learn how to generate embeddings from content using the Azure OpenAI API using t
 
 This [TSQL sample](./Vector-Search) example illustrates the implementation of Vector Similarity Search within an SQL database, highlighting the capabilities of semantic search. By leveraging vector representations of text, the system can identify reviews that share contextual similarities with a given search query, transcending the limitations of keyword exact matches. Additionally, it demonstrates the integration of Keyword Search to guarantee the inclusion of specific terms within the search outcomes.
 
-
-This end-to-end [Python sample](./Embeddings/Python) demonstrates how to:
-- **Generate embeddings** for content via Azure OpenAI API.
-- **Store and search embeddings** in Azure SQL DB for similarity matches.
-- **Augment GPT-4 responses** with vector database embeddings for context-rich product information based on customer reviews.
-
-
-
 ### Hybrid Search
 
 The Python sample in the [Hybrid-Search](./Hybrid-Search/) folder shows how to combine Fulltext search in Azure SQL database with BM25 ranking and cosine similarity ranking to do hybrid search.
