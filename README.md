@@ -26,8 +26,6 @@ A simple getting started to get familiar with common vector functions is availab
 
 Learn how to get embeddings from OpenAI directly from Azure SQL using the sample available the [Embeddings/T-SQL](./Embeddings/T-SQL) folder.
 
-Learn how to generate embeddings from content using the Azure OpenAI API using the Python sample available at [Embeddings/Python](./Embeddings/Python)
-
 ### Vector Search
 
 The [Vector-Search](./Vector-Search) example illustrates the implementation of Vector Similarity Search within an SQL database, highlighting the capabilities of semantic search. By leveraging vector representations of text, the system can identify reviews that share contextual similarities with a given search query, transcending the limitations of keyword exact matches. Additionally, it demonstrates the integration of Keyword Search to guarantee the inclusion of specific terms within the search outcomes.
@@ -35,6 +33,10 @@ The [Vector-Search](./Vector-Search) example illustrates the implementation of V
 ### Hybrid Search
 
 The Python sample in the [Hybrid-Search](./Hybrid-Search/) folder shows how to combine Fulltext search in Azure SQL database with BM25 ranking and cosine similarity ranking to do hybrid search.
+
+### Retrieval Augmented Generation
+
+The RAG pattern is a powerful way to generate text using a pre-trained language model and a retrieval mechanism. The [Retrieval Augmented Generation](./Retrieval-Augmented-Generation) folder contains a sample that demonstrates how to use the RAG pattern with Azure SQL and Azure OpenAI, using Python notebooks.
 
 ## Resources
 
