@@ -49,4 +49,4 @@ You can retrieve the Azure OpenAI *endpoint* and *key*:
 
 To [execute the notebook](https://learn.microsoft.com/azure-data-studio/notebooks/notebooks-python-kernel), connect to your Azure SQL database using Azure Data Studio, which can be downloaded [here](https://azure.microsoft.com/products/data-studio). 
 
-Then open the notebook [EmbeddingWithSQL.ipynb](./EmbeddingsWithSQL.ipynb)
+Then open the notebook [RetrievalAugmentedGeneration.ipynb](./RetrievalAugmentedGeneration.ipynb)
