@@ -2,7 +2,8 @@
 
 This repo hosts samples meant to help use the new **Native Vector Support in Azure SQL DB** feature. We illustrate key technical concepts and demonstrate how you can store and query embeddings in Azure SQL data to enhance your application with AI capabilities.
 
-**Note**: These functions are in preview and is subject to change. Preview features are not meant for production use and are subject to additional terms of use.
+> [!IMPORTANT]  
+> These functions are in preview and is subject to change. Preview features are not meant for production use and are subject to additional terms of use. Read everything about how to access the Early Adopter Preview here: [Early Adopter Preview of Native Vector Support](https://aka.ms/azuresql-vector-eap-announcement)
 
 ## Prerequisites
 
