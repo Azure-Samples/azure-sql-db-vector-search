@@ -1,4 +1,4 @@
-CREATE TABLE [dbo].[Products]
+CREATE TABLE [dbo].[embeddings]
 (
     [Id] [bigint] NULL,
     [ProductId] [nvarchar](500) NULL,
