@@ -37,13 +37,13 @@ Code snippets are adapted from the [Azure OpenAI Service embeddings Tutorial](ht
 
 1. **Database Setup**: Execute SQL commands from the `createtable.sql` script to create the necessary table in your database.
 2. **Model Deployment**: Deploy an embeddings model (`text-embedding-small` or `text-embedding-ada-002`) and a `GPT-4` model for chat completion. Note the 2 model deployment names for later use.
-![Deployed OpenAI Models](../../Assets/modeldeployment.png)
+![Deployed OpenAI Models](../Assets/modeldeployment.png)
 3. **Connection String**: Find your Azure SQL DB connection string in the Azure portal under your database settings.
 4. **Configuration**: Populate the `.env` file with your SQL server connection details , Azure OpenAI key, and endpoint values. 
 
 You can retrieve the Azure OpenAI *endpoint* and *key*:
 
-![Azure OpenAI Endpoint and Key](../../Assets/endpoint.png)
+![Azure OpenAI Endpoint and Key](../Assets/endpoint.png)
 
 ## Running the Notebook
 
