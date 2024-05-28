@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 
+namespace EFCoreVectors;
+
 public class BloggingContext : DbContext
 {
     public DbSet<Blog> Blogs { get; set; }

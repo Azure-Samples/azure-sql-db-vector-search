@@ -5,7 +5,9 @@ using Azure.AI.OpenAI;
 using EFCore.SqlServer.VectorSearch;
 using DotNetEnv;
 using Microsoft.EntityFrameworkCore;
+using EFCoreVectors;
 
+// Load .env
 Env.Load();
 
 // Create EF Core context

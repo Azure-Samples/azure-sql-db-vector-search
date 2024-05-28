@@ -2,6 +2,8 @@ using Azure;
 using Azure.AI.OpenAI;
 using DotNetEnv;
 
+namespace EFCoreVectors;
+
 public interface IEmbeddingClient
 {
     float[] GetEmbedding(string text);
