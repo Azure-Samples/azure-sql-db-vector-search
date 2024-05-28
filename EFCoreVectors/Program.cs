@@ -42,7 +42,8 @@ var newPosts = new List<(string Title, string Content)>() {
 };
 
 // Console.WriteLine("Adding embeddings...");
-var embeddingClient = new AzureOpenAIEmbeddingClient();
+//var embeddingClient = new AzureOpenAIEmbeddingClient();
+var embeddingClient = new MockEmbeddingClient();
 
 newPosts.ForEach(np => {
     var p = blog.Posts.FirstOrDefault(p => p.Title == np.Title);
