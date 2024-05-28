@@ -11,6 +11,7 @@ public class BloggingContext : DbContext
     {
         DotNetEnv.Env.Load();
         optionsBuilder.UseSqlServer(Environment.GetEnvironmentVariable("MSSQL"));
+        //optionsBuilder.LogTo(Console.WriteLine);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

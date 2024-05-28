@@ -11,12 +11,11 @@ Env.Load();
 // Create EF Core context
 using var db = new BloggingContext();
 
-// Create
-
+// Create blog
 Console.WriteLine("Getting sample blog...");
 var blog = db.Blogs
-    .Where(b => b.Name == "Sample blog")
-    .FirstOrDefault();
+    .Include(blog => blog.Posts)
+    .FirstOrDefault(b => b.Name == "Sample blog");
 
 if (blog == null) {
     Console.WriteLine("Creating 'Sample blog'...");
@@ -27,7 +26,7 @@ if (blog == null) {
 
 // Add posts
 Console.WriteLine("Adding posts...");
-var posts = new List<Post>() {
+var newPosts = new List<(string Title, string Content)>() {
     new() { 
         Title = "Hello World", 
         Content = "I wrote an app using EF Core!",        
@@ -45,21 +44,22 @@ var posts = new List<Post>() {
 // Console.WriteLine("Adding embeddings...");
 var embeddingClient = new AzureOpenAIEmbeddingClient();
 
-posts.ForEach(post => {
-    post.Embedding = embeddingClient.GetEmbedding(post.Content);
+newPosts.ForEach(np => {
+    var p = blog.Posts.FirstOrDefault(p => p.Title == np.Title);
+    if (p == null) {
+        blog.Posts.Add(new Post { 
+            Title = np.Title, 
+            Content = np.Content,
+            Embedding = embeddingClient.GetEmbedding(np.Content)
+        });
+    } else  {
+        p.Title = np.Title;
+        p.Content = np.Content;
+        p.Embedding = embeddingClient.GetEmbedding(np.Content);
+    }
 });
 
 // Adding posts to database
-posts.ForEach(post => {
-    var p = blog.Posts.Where(p => p.Title == post.Title).FirstOrDefault();
-    if (p == null) {
-        blog.Posts.Add(post);
-    } else  {
-        p.Title = post.Title;
-        p.Content = post.Content;
-        p.Embedding = post.Embedding;
-    }
-});
 db.SaveChanges();
 
 // Find similar post
