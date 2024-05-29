@@ -16,7 +16,7 @@ public class AzureOpenAIEmbeddingClient: IEmbeddingClient
 
     public float[] GetEmbedding(string text)
     {
-        Console.WriteLine($"Getting embedding for: {text}");
+        Console.WriteLine($"-> Getting embedding for: {text}");
        
         EmbeddingsOptions embeddingsOptions = new()
         {
