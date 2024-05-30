@@ -4,7 +4,7 @@ This sample shows how to use the vector functions in EF Core to store and query 
 
 You need to have a Azure OpenAI embedding endpoint to run this sample.
 
-Create a .env file from `.env.example` and fill in the required values, then run the database migration to create the database tables
+Create a `.env` file from `.env.example` and fill in the required values, then run the database migration to create the database tables
 
 ```bash
 dotnet tool install --global dotnet-ef
