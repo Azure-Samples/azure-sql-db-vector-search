@@ -2,9 +2,11 @@
 using System.Linq;
 using Azure;
 using Azure.AI.OpenAI;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
 using EFCore.SqlServer.VectorSearch;
 using DotNetEnv;
-using Microsoft.EntityFrameworkCore;
 using EFCoreVectors;
 
 // Load .env
@@ -28,48 +30,8 @@ if (blog == null) {
 
 // Add posts
 Console.WriteLine("Adding posts...");
-var newPosts = new List<(string Title, string Content)>() {
-    new() { 
-        Title = "My first EF Core app!", 
-        Content = "I wrote an app using EF Core!",        
-    },
-    new() { 
-        Title = "Vectors with Azure SQL and EF Core", 
-        Content = "You can use and store vectors easily Azure SQL and EF Core", 
-    },
-    new() { 
-        Title = "EFCore.SqlServer.VectorSearch in PreRelease", 
-        Content = "The NuGet package EFCore.SqlServer.VectorSearch is now available in PreRelease! With this package you can use vector search functions in your LINQ queries.",         
-    },
-    new() { 
-        Title = "SQL Server Best Practices", 
-        Content = "Here are some best practices for using SQL Server in your applications.",        
-    },
-    new() { 
-        Title = "Python and Flask", 
-        Content = "Learn how to build a web app using Python and Flask!",        
-    },
-    new() { 
-        Title = "Django for REST APIs", 
-        Content = "Create a REST API using Django!",        
-    },
-    new() { 
-        Title = "JavaScript for Beginners", 
-        Content = "Learn JavaScript from scratch!",        
-    },
-    new() { 
-        Title = "Node vs Rust", 
-        Content = "Which one should you choose for your next project?",        
-    },
-    new() { 
-        Title = "Pizza or Focaccia?", 
-        Content = "What's the difference between pizza and focaccia. Learn everything you need to know!",        
-    },
-    new() { 
-        Title = "Chocolate Eggs for your next dessert", 
-        Content = "Try this delicious recipe for chocolate eggs!",        
-    },
-};
+var content = File.ReadAllText("content.json");
+var newPosts = JsonSerializer.Deserialize<List<SavedPost>>(content)!;
 
 // Console.WriteLine("Adding embeddings...");
 var embeddingClient = new AzureOpenAIEmbeddingClient();

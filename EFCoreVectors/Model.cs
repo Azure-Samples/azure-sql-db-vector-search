@@ -46,3 +46,8 @@ public class Post
     public int BlogId { get; set; }
     public Blog Blog { get; set; } = null!;
 }
+
+public class SavedPost {
+    public string Title { get; set; } = string.Empty;
+    public string Content { get; set; } = string.Empty;
+}
