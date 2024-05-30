@@ -99,16 +99,18 @@ Console.WriteLine("\n----------\n");
 // Querying
 string searchPhrase = "I want to use Azure SQL, EF Core and vectors in my app!";
 Console.WriteLine($"Search phrase is: '{searchPhrase}'...");
+
 Console.WriteLine("Querying for similar posts...");
 float[] vector = embeddingClient.GetEmbedding(searchPhrase);
 var relatedPosts = await db.Posts
     .Where(p => p.Blog.Name == "Sample Blog")    
     .OrderBy(p => EF.Functions.VectorDistance("cosine", p.Embedding, vector))
+    .Select(p => new { p.Title, Distance = EF.Functions.VectorDistance("cosine", p.Embedding, vector)})
     .Take(5)    
     .ToListAsync();
 
 Console.WriteLine("Similar posts found:");
 relatedPosts.ForEach(rp => {
-    Console.WriteLine($"Post: {rp.Title}");
+    Console.WriteLine($"Post: {rp.Title}, Distance: {rp.Distance}");
 });
 
