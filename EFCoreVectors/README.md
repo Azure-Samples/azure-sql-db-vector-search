@@ -8,6 +8,7 @@ Create a `.env` file from `.env.example` and fill in the required values, then r
 
 ```bash
 dotnet tool install --global dotnet-ef
+dotnet build
 dotnet ef database update
 ```
 
