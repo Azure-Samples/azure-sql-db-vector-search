@@ -62,12 +62,18 @@ if __name__ == '__main__':
             DECLARE @v VARBINARY(8000) = JSON_ARRAY_TO_VECTOR(CAST(? AS NVARCHAR(MAX)));
             WITH keyword_search AS (
                 SELECT TOP(@k)
-                    id,
-                    ftt.[RANK] AS rank
-                FROM 
-                    dbo.documents 
-                INNER JOIN 
+                    id, 
+                    RANK() OVER (ORDER BY rank) AS rank
+                FROM
+                    (
+                        SELECT TOP(@k)
+                            id,
+                            ftt.[RANK] AS rank
+                        FROM 
+                            dbo.documents 
+                        INNER JOIN 
                     FREETEXTTABLE(dbo.documents, *, @q) AS ftt ON dbo.documents.id = ftt.[KEY]
+                    ) AS freetext_documents
             ),
             semantic_search AS
             (
