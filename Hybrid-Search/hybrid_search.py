@@ -72,7 +72,7 @@ if __name__ == '__main__':
                         FROM 
                             dbo.documents 
                         INNER JOIN 
-                    FREETEXTTABLE(dbo.documents, *, @q) AS ftt ON dbo.documents.id = ftt.[KEY]
+                            FREETEXTTABLE(dbo.documents, *, @q) AS ftt ON dbo.documents.id = ftt.[KEY]
                     ) AS freetext_documents
             ),
             semantic_search AS
