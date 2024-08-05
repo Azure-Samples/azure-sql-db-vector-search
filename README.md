@@ -45,6 +45,10 @@ The RAG pattern is a powerful way to generate text using a pre-trained language 
 
 If you are using .NET EF Core, you can use the [Entity-Framework-Core](./Entity-Framework-Core) sample to see how to use the new vector functions in your application.
 
+### Semantic Kernel
+
+[Semantic Kernel](https://github.com/microsoft/semantic-kernel) is an SDK that simplifies the creation of enterprise AI-enabled applications. Details on support for SQL Server and Azure SQL as vectors stores are available in the [SemanticKernel](./SemanticKernel) folder.
+
 ## Resources
 
 - [Create and deploy an Azure OpenAI Service resource](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal)
