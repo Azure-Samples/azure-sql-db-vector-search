@@ -4,7 +4,7 @@ Learn how to integrate Azure OpenAI API with Azure SQL DB to create, store, and 
 
 ## Tutorial Overview
 
-This Python [notebook](EmbeddingsWithSQL.ipynb) will teach you to:
+This Python [notebook](RetrievalAugmentedGeneration.ipynb) will teach you to:
 
 - **Create Embeddings**: Generate embeddings from content using the Azure OpenAI API.
 - **Vector Database Utilization**: Use Azure SQL DB to store embeddings and perform similarity searches.
