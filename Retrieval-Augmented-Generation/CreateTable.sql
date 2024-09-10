@@ -7,6 +7,6 @@ CREATE TABLE [dbo].[embeddings]
     [Summary] [nvarchar](max) NULL,
     [Text] [nvarchar](max) NULL,
     [Combined] [nvarchar](max) NULL,
-    [Vector] [varbinary](8000) NULL
+    [Vector] [vector](1536) NULL
 ) 
 GO
