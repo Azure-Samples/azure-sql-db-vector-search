@@ -16,7 +16,7 @@ if __name__ == '__main__':
         'The cat is purring',
         'The bear is growling'
     ]
-    model = SentenceTransformer('multi-qa-MiniLM-L6-cos-v1')
+    model = SentenceTransformer('multi-qa-MiniLM-L6-cos-v1') # returns a 384-dimensional vector
     embeddings = model.encode(sentences)
 
     conn = get_mssql_connection()
@@ -35,7 +35,7 @@ if __name__ == '__main__':
         
         for id, (content, embedding) in enumerate(zip(sentences, embeddings)):
             cursor.execute(f"""
-                INSERT INTO dbo.documents (id, content, embedding) VALUES (?, ?, JSON_ARRAY_TO_VECTOR(CAST(? AS NVARCHAR(MAX))));
+                INSERT INTO dbo.documents (id, content, embedding) VALUES (?, ?, CAST(? AS VECTOR(384)));
             """,
             id,
             content, 
@@ -59,7 +59,7 @@ if __name__ == '__main__':
         results  = cursor.execute(f"""
             DECLARE @k INT = ?;
             DECLARE @q NVARCHAR(1000) = ?;
-            DECLARE @v VARBINARY(8000) = JSON_ARRAY_TO_VECTOR(CAST(? AS NVARCHAR(MAX)));
+            DECLARE @v VECTOR(384) = CAST(? AS VECTOR(384));
             WITH keyword_search AS (
                 SELECT TOP(@k)
                     id, 
