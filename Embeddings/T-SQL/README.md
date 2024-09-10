@@ -6,7 +6,7 @@ In this sample you'll be creating a stored procedure to easily transform text in
 
 Make sure you can access OpenAI service by following the documentation here: [How do I get access to Azure OpenAI?](https://learn.microsoft.com/azure/ai-services/openai/overview#how-do-i-get-access-to-azure-openai).
 
-Deploy an embedding model - for example the `text-embedding-ada-002` - following the [Create and deploy an Azure OpenAI Service resource](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource)
+Deploy an embedding model - for example the `text-embedding-3-small` - following the [Create and deploy an Azure OpenAI Service resource](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource). Please note that the sample assumes that the choose embedding model returns a 1536-dimensional vector, so if you choose another embedding model, you may need to adjust the sample accordingly.
 
 Then retrieve the Azure OpenAI *endpoint* and *key*:
 
@@ -29,7 +29,7 @@ Use the `03-get-embeddings.sql` to call to OpenAI to transform sample text into 
 And then use 
 
 ```sql
-declare @king varbinary(8000);
+declare @king vector(1536);
 exec dbo.get_embedding @deployedModelName = 'text-embedding-3-small', @inputText = 'King', @embedding = @king output;
 ```
 

@@ -1,7 +1,7 @@
 /*
     Get the embeddings for the input text by calling the OpenAI API
 */
-declare @king varbinary(8000), @queen varbinary(8000), @pizza varbinary(8000);
+declare @king vector(1536), @queen vector(1536), @pizza vector(1536);
 
 exec dbo.get_embedding @deployedModelName = '<deployment-name>', @inputText = 'King', @embedding = @king output;
 exec dbo.get_embedding @deployedModelName = '<deployment-name>', @inputText = 'Queen', @embedding = @queen output;
