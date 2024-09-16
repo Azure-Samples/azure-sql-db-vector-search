@@ -1,6 +1,7 @@
 tiktoken
 tokenizer
 azure-ai-documentintelligence
+azure-ai-formrecognizer
 azure-identity
 azure-core
 azure-search-documents==11.6.0b3
