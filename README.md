@@ -19,6 +19,8 @@ To use the provided samples make sure you have the following pre-requisites:
 
 1. Azure Data Studio - [Download for free](https://learn.microsoft.com/azure-data-studio/download-azure-data-studio) to use the notebooks offline. [SQL Server Management Studio](https://learn.microsoft.com/sql/ssms/download-sql-server-management-studio-ssms) is also an option if you don't want to use notebook offline.
 
+1. If you are going to clone this repository in your machine, make sure to have installed the `git-lfs` extension: [Git Large File Storage](https://git-lfs.com/)
+
 ## Samples  
 
 ### Getting Started
@@ -43,7 +45,7 @@ The RAG pattern is a powerful way to generate text using a pre-trained language 
 
 ### Entity Framework Core
 
-If you are using .NET EF Core, you can use the [Entity-Framework-Core](./Entity-Framework-Core) sample to see how to use the new vector functions in your application.
+If you are using .NET EF Core, you can use the [EF-Core](./EF-Core) sample to see how to use the new vector functions in your application.
 
 ### Semantic Kernel
 
