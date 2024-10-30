@@ -1,40 +1,46 @@
 using Azure;
 using Azure.AI.OpenAI;
 using DotNetEnv;
+using OpenAI.Embeddings;
+using System;
+using System.Linq;
 
 namespace EFCoreVectors;
 
 public interface IEmbeddingClient
 {
-    float[] GetEmbedding(string text);
+    float[] GetEmbedding(string text, int dimensions);
 }
 
 public class AzureOpenAIEmbeddingClient: IEmbeddingClient
 {
     static AzureKeyCredential credentials = new(Env.GetString("OPENAI_KEY"));
-    static OpenAIClient openAIClient = new(new Uri(Env.GetString("OPENAI_URL")), credentials);
+    static AzureOpenAIClient aiClient = new(new Uri(Env.GetString("OPENAI_URL")), credentials);
 
-    public float[] GetEmbedding(string text)
+    public float[] GetEmbedding(string text, int dimensions = 1536)
     {
         Console.WriteLine($"-> Getting embedding for: {text}");
-       
-        EmbeddingsOptions embeddingsOptions = new()
-        {
-            DeploymentName = Env.GetString("OPENAI_DEPLOYMENT_NAME"),
-            Input = { text },
-        };
         
-        Response<Embeddings> response = openAIClient.GetEmbeddings(embeddingsOptions);
-        EmbeddingItem item = response.Value.Data[0];
+        var embeddingClient = aiClient.GetEmbeddingClient(Env.GetString("OPENAI_DEPLOYMENT_NAME"));        
+                       
+        var embedding = embeddingClient.GenerateEmbedding(text, new() { Dimensions = dimensions });        
 
-        return item.Embedding.ToArray();
+        var vector = embedding.Value.ToFloats().ToArray();
+        if (vector.Length != dimensions) {
+            throw new Exception($"Expected {dimensions} dimensions, but got {vector.Length}");
+        }
+
+        return vector;
     }
 }
 
 public class MockEmbeddingClient: IEmbeddingClient
 {
-    public float[] GetEmbedding(string text)
+    public float[] GetEmbedding(string text, int dimensions = 1536)
     {
-        return [1.0f, 2.0f, 3.0f];
+        Random random = new();
+        return Enumerable.Range(0, dimensions)
+                         .Select(_ => (float)random.NextDouble())
+                         .ToArray();
     }   
 }
