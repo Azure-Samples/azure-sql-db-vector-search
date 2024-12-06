@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "SqlServer.NativeVectorSearch.Samples": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ApiKey": "***",
+        "EmbeddingModelName": "***",
+        "SqlConnStr": "***"
+      }
+    }
+  }
+}
