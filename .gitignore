@@ -403,3 +403,5 @@ FodyWeavers.xsd
 *.local.sql
 /DotNet/SqlServer.NativeVectorSearch.Samples/Properties/launchSettings Empty.json
 /DotNet/SqlServer.NativeVectorSearch.Samples/Properties/launchSettingsProd.json
+/DotNet/SqlClient/Properties/launchSettings Empty.json
+/DotNet/SqlClient/Properties/launchSettingsProd.json
