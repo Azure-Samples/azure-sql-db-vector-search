@@ -2,4 +2,4 @@
 This folder contains the samples demonstrating how to use Native Vector Search in C#.
 
 - [SQL Server Native Vector Search with Entity Framework](./EF-Core)
-- [SQL Server Native Vector Search with SqlClient](./SqlClient)
+- [SQL Server Native Vector Search with SqlClient](./SqlClient/ReadMe.md)
