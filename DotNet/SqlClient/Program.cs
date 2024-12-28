@@ -40,7 +40,7 @@ namespace SqlServer.NativeVectorSearch.Samples
             //await CreateAndInsertVectorsAsync();
             //await CreateAndInsertEmbeddingAsync();
             //await ReadVectorsAsync();
-
+            // await FindSimilarAsync();
             //await GenerateTestDocumentsAsync();
 
             await ClassifyDocumentsAsync();
