@@ -37,10 +37,13 @@ namespace SqlServer.NativeVectorSearch.Samples
         {
             Console.WriteLine("Hello, World!");
 
-            await CreateAndInsertVectorsAsync();
-            await CreateAndInsertEmbeddingAsync();
-            await ReadVectorsAsync();
+            //await CreateAndInsertVectorsAsync();
+            //await CreateAndInsertEmbeddingAsync();
+            //await ReadVectorsAsync();
+            // await FindSimilarAsync();
+            //await GenerateTestDocumentsAsync();
 
+            await ClassifyDocumentsAsync();
 
             await GenerateRandomVectorsAsync();
         }
@@ -121,13 +124,13 @@ namespace SqlServer.NativeVectorSearch.Samples
         /// </summary>
         /// <param name="howMany"></param>
         /// <returns></returns>
-        public static async Task GenerateRandomVectorsAsync(int howMany)
+        public static async Task GenerateRandomVectorsAsync(int howMany = 10000)
         {
             using (SqlConnection connection = new SqlConnection(_cConnStr))
             {
                 connection.Open();
 
-                for (int i = 0; i < 10000; i++)
+                for (int i = 0; i < howMany; i++)
                 {
                     string sql = $"INSERT INTO [test].[Vectors] ([Vector],[Text]) VALUES  (@Vector, @Text)";
 
@@ -279,7 +282,7 @@ namespace SqlServer.NativeVectorSearch.Samples
         /// </summary>
         /// <returns></returns>
         public static async Task ClassifyDocumentsAsync()
-        {
+        {   
             var invoicesEng = await GetMatching(20, "invoice total item");
 
             var invoiceGER = await GetMatching(20, "rechnung item gesammt");
@@ -449,7 +452,7 @@ namespace SqlServer.NativeVectorSearch.Samples
         /// will be inserted into the database along with the document text.
         /// </summary>
 
-        public async Task GenerateTestDocuments()
+        public static async Task GenerateTestDocumentsAsync()
         {
             string[] customers = { "John Doe", "Jane Smith", "Alice Johnson", "Bob Lee", "Emma Davis", "Chris White",
                                "Lily Brown", "James Wilson", "Olivia King", "Michael Scott" };
