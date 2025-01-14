@@ -11,12 +11,12 @@
     <PackageReference Include="Azure.AI.OpenAI" Version="2.0.0" />
     <PackageReference Include="Azure.Identity" Version="1.13.1" />
     <PackageReference Include="DotnetEnv" Version="3.0.0" />
-    <PackageReference Include="EFCore.SqlServer.VectorSearch" Version="0.2.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.5">
+    <PackageReference Include="EFCore.SqlServer.VectorSearch" Version="9.0.0-preview.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.1">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.1" />
   </ItemGroup>
 
   <ItemGroup>
