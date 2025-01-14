@@ -43,6 +43,10 @@ The Python sample in the [Hybrid-Search](./Hybrid-Search/) folder shows how to c
 
 The RAG pattern is a powerful way to generate text using a pre-trained language model and a retrieval mechanism. The [Retrieval Augmented Generation](./Retrieval-Augmented-Generation) folder contains a sample that demonstrates how to use the RAG pattern with Azure SQL and Azure OpenAI, using Python notebooks.
 
+### SQL Client
+
+If you are using SQL Client directly in your applications, you can use the [SqlClient](./DotNet/SqlClient) folder to see how to use Native Vector Search in C#/.NET. 
+
 ### Entity Framework Core
 
 If you are using .NET EF Core, you can use the [EF-Core](./DotNet/EF-Core) sample to see how to use the new vector functions in your application.
