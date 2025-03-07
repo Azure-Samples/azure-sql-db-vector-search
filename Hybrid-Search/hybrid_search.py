@@ -74,6 +74,8 @@ if __name__ == '__main__':
                             dbo.documents 
                         INNER JOIN 
                             FREETEXTTABLE(dbo.documents, *, @q) AS ftt ON dbo.documents.id = ftt.[KEY]
+                        ORDER BY
+                            ft_rank DESC
                     ) AS freetext_documents
             ),
             semantic_search AS
