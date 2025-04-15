@@ -11,7 +11,7 @@
     <PackageReference Include="Azure.AI.OpenAI" Version="2.0.0" />
     <PackageReference Include="Azure.Identity" Version="1.13.1" />
     <PackageReference Include="DotnetEnv" Version="3.0.0" />
-    <PackageReference Include="EFCore.SqlServer.VectorSearch" Version="9.0.0-preview.1" />
+    <PackageReference Include="EFCore.SqlServer.VectorSearch" Version="9.0.0-preview.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.1">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
