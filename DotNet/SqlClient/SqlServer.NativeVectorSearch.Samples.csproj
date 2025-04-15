@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.1" />
 	  <PackageReference Include="OpenAI" Version="2.0.0" />
   </ItemGroup>
 
