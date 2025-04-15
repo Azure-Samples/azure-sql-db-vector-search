@@ -28,16 +28,15 @@ To execute the samples, ensure you configure the following environment variables
 
 You also need to create the following table (Note: the solution uses the scheme 'test'):   
 
-~~~sql
-      CREATE TABLE test.Vectors
-        (
-          [Id] INT IDENTITY(1,1) NOT NULL,
-          [Text] NVARCHAR(MAX) NULL,
-          [VectorShort] VECTOR(3)  NULL,
-          [Vector] VECTOR(1536)  NULL
-       ) ON [PRIMARY];
-~~~
-
+```sql
+CREATE TABLE test.Vectors
+(
+    [Id] INT IDENTITY(1,1) NOT NULL,
+    [Text] NVARCHAR(MAX) NULL,
+    [VectorShort] VECTOR(3)  NULL,
+    [Vector] VECTOR(1536)  NULL
+) ON [PRIMARY];
+```
 ### 1. Create and insert vectors in the SQL table
 This example (CreateAndInsertVectorsAsync) provides a demonstration of creating vectors and inserting them into a database table. For clarity and simplicity, the example inserts two 3-dimensional vectors.
 
