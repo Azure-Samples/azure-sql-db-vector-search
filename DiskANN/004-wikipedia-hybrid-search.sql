@@ -35,7 +35,7 @@ WITH keyword_search AS (
             FROM 
                 dbo.wikipedia_articles_embeddings w
             INNER JOIN 
-                FREETEXTTABLE(dbo.wikipedia_articles_embeddings, *, @q) AS ftt ON w.id = ftt.[KEY]
+                FREETEXTTABLE(dbo.wikipedia_articles_embeddings, *, @q) AS ftt ON w.id = ftt.[KEY] -- FREETEXTTABLE returns BM25 rank
             ORDER BY
                 ft_rank DESC
         ) AS freetext_documents
