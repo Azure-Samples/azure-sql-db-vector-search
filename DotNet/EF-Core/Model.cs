@@ -20,7 +20,9 @@ public class BloggingContext : DbContext
             o => o.UseVectorSearch()
         );
 
-        //optionsBuilder.LogTo(Console.WriteLine);
+        optionsBuilder.LogTo(Console.WriteLine, [ DbLoggerCategory.Database.Command.Name ])
+            .EnableSensitiveDataLogging()
+            .EnableDetailedErrors();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
