@@ -21,6 +21,8 @@ To use the provided samples make sure you have the following pre-requisites:
 
 1. If you are going to clone this repository in your machine, make sure to have installed the `git-lfs` extension: [Git Large File Storage](https://git-lfs.com/)
 
+1. For testing DiskANN, at the moment, you need to use SQL Server 2025. See the announcement here: [Announcing Public Preview of DiskANN in SQL Server 2025](https://techcommunity.microsoft.com/blog/sqlserver/announcing-public-preview-of-diskann-in-sql-server-2025/4414683).
+
 ## Samples  
 
 ### Getting Started
@@ -31,17 +33,27 @@ A simple getting started to get familiar with common vector functions is availab
 
 Learn how to get embeddings from OpenAI directly from Azure SQL using the sample available the [Embeddings/T-SQL](./Embeddings/T-SQL) folder.
 
-### Vector Search
+### Exact Vector Search
 
 The [Vector-Search](./Vector-Search) example illustrates the implementation of Vector Similarity Search within an SQL database, highlighting the capabilities of semantic search. By leveraging vector representations of text, the system can identify reviews that share contextual similarities with a given search query, transcending the limitations of keyword exact matches. Additionally, it demonstrates the integration of Keyword Search to guarantee the inclusion of specific terms within the search outcomes.
 
-### Hybrid Search
+#### Hybrid Search
 
 The Python sample in the [Hybrid-Search](./Hybrid-Search/) folder shows how to combine Fulltext search in Azure SQL database with BM25 ranking and cosine similarity ranking to do hybrid search.
 
 ### Retrieval Augmented Generation
 
 The RAG pattern is a powerful way to generate text using a pre-trained language model and a retrieval mechanism. The [Retrieval Augmented Generation](./Retrieval-Augmented-Generation) folder contains a sample that demonstrates how to use the RAG pattern with Azure SQL and Azure OpenAI, using Python notebooks.
+
+### Approximate Vector Search
+
+The [DiskANN](./DiskANN/) folder contains a sample that demonstrates how to use the new `VECTOR_SEARCH` function with DiskANN. The sample uses a subset of Wikipedia data to create a table with a vector column, insert data, and perform approximate nearest neighbor search using the `VECTOR_SEARCH` function.
+
+This sample, at the moment, requires SQL Server 2025. See the announcement here: [Announcing Public Preview of DiskANN in SQL Server 2025](https://techcommunity.microsoft.com/blog/sqlserver/announcing-public-preview-of-diskann-in-sql-server-2025/4414683).
+
+#### Hybrid Search
+
+Using DiskANN together with FullText enables you to do hybrid search. The [DiskANN](./DiskANN/) folder contains the file `004-wikipedia-hybrid-search.sql` that demonstrates how to use the the new `VECTOR_SEARCH` function along with `FREETEXTTABLE` to implement hybrid search with Reciprocal Rank Fusion (RRF) and BM25 ranking.
 
 ### SQL Client
 
