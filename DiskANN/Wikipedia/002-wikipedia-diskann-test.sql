@@ -50,7 +50,7 @@ go
 */
 /*
 declare @j json = (select BulkColumn from 
-			openrowset(bulk 'W:\sql-server-2025\samples\azure-sql-db-vector-search\reference-embedding.json', single_clob) as j)
+			openrowset(bulk 'C:\sql-server-2025\samples\azure-sql-db-vector-search\DiskANN\Wikipedia\reference-embedding.json', single_clob) as j)
 declare @qv vector(1536) = json_query(@j, '$."embedding-vector"')
 drop table if exists #t;
 create table #t (v vector(1536))

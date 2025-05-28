@@ -26,7 +26,7 @@ go
     https://cdn.openai.com/API/examples/data/vector_database_wikipedia_articles_embedded.zip
 */
 bulk insert dbo.[wikipedia_articles_embeddings]
-from 'W:\sql-server-2025\samples\azure-sql-db-vector-search\vector_database_wikipedia_articles_embedded.csv'
+from 'C:\sql-server-2025\samples\azure-sql-db-vector-search\DiskANN\Wikipedia\vector_database_wikipedia_articles_embedded.csv'
 with (	
     format = 'csv',
     firstrow = 2,
