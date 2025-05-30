@@ -103,7 +103,7 @@ declare @qv vector(1536)
 drop table if exists #t;
 create table #t (v vector(1536))
 insert into #t 
-select ai_generate_embeddings(N'The foundation series by Isaac Asimov' model Ada2Embeddings);
+select ai_generate_embeddings(N'The foundation series by Isaac Asimov' use model Ada2Embeddings);
 select * from  #t
 go
 
