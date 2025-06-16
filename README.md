@@ -15,8 +15,6 @@ To use the provided samples make sure you have the following pre-requisites:
 
 1. Make sure you have an [Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/overview) resource created in your Azure subscription.
 
-1. Make sure you have access to the Early Adopter Preview by filling out this form: https://aka.ms/azuresql-vector-eap
-
 1. Azure Data Studio - [Download for free](https://learn.microsoft.com/azure-data-studio/download-azure-data-studio) to use the notebooks offline. [SQL Server Management Studio](https://learn.microsoft.com/sql/ssms/download-sql-server-management-studio-ssms) is also an option if you don't want to use notebook offline.
 
 1. If you are going to clone this repository in your machine, make sure to have installed the `git-lfs` extension: [Git Large File Storage](https://git-lfs.com/)
