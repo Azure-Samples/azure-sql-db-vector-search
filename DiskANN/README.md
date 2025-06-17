@@ -7,3 +7,7 @@ The samples in this folder demonstrate how to use the `VECTOR_SEARCH` function w
 - Creating a table with a vector column, importing data from a CSV file, and inserting data into the table.
 - Performing approximate nearest neighbor search using the `VECTOR_SEARCH` function.
 - Performing hybrid search using the `VECTOR_SEARCH` function along with full-text search.
+
+## End-To-End sample
+
+A full end-to-end sample using Streamlit is available here: https://github.com/Azure-Samples/azure-sql-diskann
