@@ -25,7 +25,7 @@ These demo follow the Jupyter notebook provided in the [azure-sql-db-vector-sear
 ## Resources Deployment
 
 ### One Click Deployment
-Automated deployment scripts are available in a separate [GitHub repository](https://github.com/Kushagra-2000/ARM_SQL_OpenAI) that will help to deploy required component.
+Automated deployment scripts are available in a separate [GitHub repository](https://github.com/Azure-Samples/azure-sql-db-vector-search/tree/main/5-Min-RAG-SQL-Accelerator/Step1-OneClick-Deployment) that will help to deploy required component.
 
 This includes ARM templates to provision:
 - Azure SQL DB
