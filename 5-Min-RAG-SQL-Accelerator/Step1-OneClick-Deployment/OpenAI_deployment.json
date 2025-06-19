@@ -1,0 +1,98 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "account_name": {
+            "type": "String",
+            "metadata": {
+                "description": "The name of Azure OpenAI resource."
+            }
+        },
+        "account_location": {
+            "defaultValue": "eastus2",
+            "type": "String",
+            "metadata": {
+                "description": "The location of Azure OpenAI resource."
+            }
+        },
+        "deployment_name": {
+            "defaultValue": "gpt-4.1",
+            "type": "String",
+            "metadata": {
+                "description": "The name of Azure OpenAI chat completion model."
+            }
+        },
+        "embedding_model": {
+            "defaultValue": "text-embedding-3-small",
+            "type": "String",
+            "metadata": {
+                "description": "The name of Azure OpenAI embedding model."
+            }
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.CognitiveServices/accounts",
+            "apiVersion": "2024-10-01",
+            "name": "[parameters('account_name')]",
+            "location": "[parameters('account_location')]",
+            "sku": {
+                "name": "S0"
+            },
+            "kind": "OpenAI",
+            "properties": {
+                "networkAcls": {
+                    "defaultAction": "Allow",
+                    "virtualNetworkRules": [],
+                    "ipRules": []
+                },
+                "publicNetworkAccess": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.CognitiveServices/accounts/deployments",
+            "apiVersion": "2024-10-01",
+            "name": "[concat(parameters('account_name'), '/', parameters('deployment_name'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('account_name'))]"
+            ],
+            "sku": {
+                "name": "GlobalStandard",
+                "capacity": 50
+            },
+            "properties": {
+                "model": {
+                    "format": "OpenAI",
+                    "name": "gpt-4.1",
+                    "version": "2025-04-14"
+                },
+                "versionUpgradeOption": "OnceNewDefaultVersionAvailable",
+                "currentCapacity": 50,
+                "raiPolicyName": "Microsoft.DefaultV2"
+            }
+        },
+        {
+            "type": "Microsoft.CognitiveServices/accounts/deployments",
+            "apiVersion": "2024-10-01",
+            "name": "[concat(parameters('account_name'), '/', parameters('embedding_model'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('account_name'))]"
+            ],
+            "sku": {
+                "name": "GlobalStandard",
+                "capacity": 150
+            },
+            "properties": {
+                "model": {
+                    "format": "OpenAI",
+                    "name": "text-embedding-3-small",
+                    "version": "1"
+                },
+                "versionUpgradeOption": "NoAutoUpgrade",
+                "currentCapacity": 150,
+                "raiPolicyName": "Microsoft.DefaultV2"
+            }
+        }
+    ]
+}

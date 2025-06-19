@@ -1,0 +1,191 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "serverName": {
+            "defaultValue": "Sample-SQL-server-<yourname>",
+            "type": "String",
+            "metadata": {
+                "description": "The name of the SQL server that will host the SQL Database."
+            }
+        },
+        "sqlDBName": {
+            "defaultValue": "Sample-SQL-Database-<yourname>",
+            "type": "String",
+            "metadata": {
+                "description": "The name of the SQL Database."
+            }
+        },
+        "location": {
+            "defaultValue": "eastus2",
+            "allowedValues": [
+                "eastus",
+                "eastus2",
+                "westus",
+                "centralus",
+                "northcentralus",
+                "southcentralus",
+                "westus2",
+                "westus3",
+                "australiaeast",
+                "australiasoutheast",
+                "brazilsouth",
+                "canadacentral",
+                "canadaeast",
+                "centralindia",
+                "eastasia",
+                "japaneast",
+                "japanwest",
+                "koreacentral",
+                "koreasouth",
+                "northeurope",
+                "southafricanorth",
+                "southindia",
+                "southeastasia",
+                "uksouth",
+                "ukwest",
+                "westeurope"
+            ],
+            "type": "String",
+            "metadata": {
+                "description": "Location for SQL resources. Recommended to keep location same as default value to ensure compatibility and lower latency."
+            }
+        },
+        "administratorLogin": {
+            "type": "String",
+            "metadata": {
+                "description": "Username for the SQL Server admin account. You'll use this to log in and manage the database"
+            }
+        },
+        "administratorLoginPassword": {
+            "type": "SecureString",
+            "metadata": {
+                "description": "Secure password for the SQL Server admin account."
+            }
+        },
+        "OpenAI_account_name": {
+            "defaultValue": "Sample-OpenAI-<yourname>",
+            "type": "String",
+            "metadata": {
+                "description": "Name of the Azure OpenAI resource used for deploying language models like GPT."
+            }
+        },
+        "OpenAI_account_location": {
+            "defaultValue": "eastus2",
+            "type": "String",
+            "metadata": {
+                "description": "Azure region where the OpenAI resource will be deployed. Keeping it as default ensures model availability."
+            }
+        },
+        "OpenAI_chat_completion_model": {
+            "defaultValue": "gpt-4.1",
+            "type": "String",
+            "metadata": {
+                "description": "Name of the Azure OpenAI chat model to be deployed for generating conversational responses. Recommended to keep same as default value."
+            }
+        },
+        "embedding_model": {
+            "defaultValue": "text-embedding-3-small",
+            "type": "String",
+            "metadata": {
+                "description": "Name of the Azure OpenAI chat model to be deployed for generating conversational responses. Recommended to keep same as default value."
+            }
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.CognitiveServices/accounts",
+            "apiVersion": "2024-10-01",
+            "name": "[parameters('OpenAI_account_name')]",
+            "location": "[parameters('OpenAI_account_location')]",
+            "sku": {
+                "name": "S0"
+            },
+            "kind": "OpenAI",
+            "properties": {
+                "customSubDomainName": "[parameters('OpenAI_account_name')]",
+                "networkAcls": {
+                    "defaultAction": "Allow",
+                    "virtualNetworkRules": [],
+                    "ipRules": []
+                },
+                "publicNetworkAccess": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.CognitiveServices/accounts/deployments",
+            "apiVersion": "2024-10-01",
+            "name": "[concat(parameters('OpenAI_account_name'), '/', parameters('OpenAI_chat_completion_model'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('OpenAI_account_name'))]"
+            ],
+            "sku": {
+                "name": "GlobalStandard",
+                "capacity": 50
+            },
+            "properties": {
+                "model": {
+                    "format": "OpenAI",
+                    "name": "gpt-4.1",
+                    "version": "2025-04-14"
+                },
+                "versionUpgradeOption": "OnceNewDefaultVersionAvailable",
+                "currentCapacity": 50,
+                "raiPolicyName": "Microsoft.DefaultV2"
+            }
+        },
+        {
+            "type": "Microsoft.CognitiveServices/accounts/deployments",
+            "apiVersion": "2024-10-01",
+            "name": "[concat(parameters('OpenAI_account_name'), '/', parameters('embedding_model'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('OpenAI_account_name'))]"
+            ],
+            "sku": {
+                "name": "GlobalStandard",
+                "capacity": 150
+            },
+            "properties": {
+                "model": {
+                    "format": "OpenAI",
+                    "name": "text-embedding-3-small",
+                    "version": "1"
+                },
+                "versionUpgradeOption": "NoAutoUpgrade",
+                "currentCapacity": 150,
+                "raiPolicyName": "Microsoft.DefaultV2"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers",
+            "apiVersion": "2022-05-01-preview",
+            "name": "[parameters('serverName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "administratorLogin": "[parameters('administratorLogin')]",
+                "administratorLoginPassword": "[parameters('administratorLoginPassword')]",
+                "publicNetworkAccess": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Sql/servers/databases",
+            "apiVersion": "2022-05-01-preview",
+            "name": "[format('{0}/{1}', parameters('serverName'), parameters('sqlDBName'))]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', parameters('serverName'))]"
+            ],
+            "sku": {
+                "name": "GP_S_Gen5",
+                "tier": "GeneralPurpose",
+                "family": "Gen5",
+                "capacity": 2
+            },
+            "kind": "v12.0,user,vcore,serverless,freelimit",
+            "properties": {
+                "useFreeLimit": "true",
+                "freeLimitExhaustionBehavior": "AutoPause"
+            }
+        }
+    ]
+}

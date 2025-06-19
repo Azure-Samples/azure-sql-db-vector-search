@@ -1,0 +1,7 @@
+streamlit==1.45.0
+pandas==2.2.3
+requests==2.32.3
+python-dotenv==1.1.0
+openai==1.72.0
+pyodbc==5.2.0
+azure-identity==1.21.0
