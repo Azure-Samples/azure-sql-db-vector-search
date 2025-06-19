@@ -29,7 +29,7 @@ This Streamlit app demonstrates how to build a Retrieval-Augmented Generation (R
 
 ## Automated Deployments
 - **ARM Template Scripts:**
-    - ARM templates are provided separately to automate the deployment of required resources. Please refer to [this repository](https://github.com/Kushagra-2000/ARM_SQL_OpenAI) for scripts and detailed instructions. 
+    - ARM templates are provided separately to automate the deployment of required resources. Please refer to [this repository](https://github.com/Azure-Samples/azure-sql-db-vector-search/tree/main/5-Min-RAG-SQL-Accelerator/Step1-OneClick-Deployment) for scripts and detailed instructions. 
     - Follow the RAG for Unstructured Docs for this particular demo.
 - **SQL on Fabric:**
     - Create a workspace in Fabric, if not existed before.
@@ -52,7 +52,7 @@ This Streamlit app demonstrates how to build a Retrieval-Augmented Generation (R
 5. **Run the Streamlit App:**
    - Navigate to the cloned repository destination and then run the below command to start the app on `localhost:8501`
      ```
-     streamlit run streamlit_unstructured.py
+    streamlit run <filename.py> --server.maxUploadSize 500
      ```
 6. **Configure Credentials:**
    - Launch the app and enter your Azure endpoints, API keys, and SQL connection string in the sidebar.
