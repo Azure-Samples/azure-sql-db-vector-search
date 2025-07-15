@@ -1,9 +1,6 @@
 # Native Vector Support in Azure SQL and SQL Server
 
-This repo hosts samples meant to help use the new **Native Vector Support in Azure SQL DB** feature. We illustrate key technical concepts and demonstrate how you can store and query embeddings in Azure SQL data to enhance your application with AI capabilities.
-
-> [!IMPORTANT]  
-> Vector Functions are in Public Preview. Learn the details about vectors in Azure SQL here: https://aka.ms/azure-sql-vector-public-preview
+This repo hosts samples meant to help use the new [**Native Vector Support in Azure SQL DB**](https://devblogs.microsoft.com/azure-sql/announcing-general-availability-of-native-vector-type-functions-in-azure-sql/) feature. We illustrate key technical concepts and demonstrate how you can store and query embeddings in Azure SQL data to enhance your application with AI capabilities.
 
 ## Prerequisites
 
