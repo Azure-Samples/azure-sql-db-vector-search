@@ -26,11 +26,11 @@ go
     https://cdn.openai.com/API/examples/data/vector_database_wikipedia_articles_embedded.zip
 */
 bulk insert dbo.[wikipedia_articles_embeddings]
-from '/tmp/Vectors/vector_database_wikipedia_articles_embedded.csv'
+from 'C:\Work\vector\ctp21\vector_diskann_index\datasets\vector_database_wikipedia_articles_embedded.csv'
 with (	
     format = 'csv',
     firstrow = 2,
-    --codepage = '65001', --comment if using MSSQL on Linux
+    codepage = '65001', --comment if using MSSQL on Linux
 	fieldterminator = ',',
 	rowterminator = '0x0a',
     fieldquote = '"',
@@ -60,5 +60,5 @@ go
 select top (10) * from [dbo].[wikipedia_articles_embeddings]
 go
 
-select * from [dbo].[wikipedia_articles_embeddings] where title = 'Alan Turing'
+select * from [dbo].[wikipedia_articles_embeddings] where title like 'Philosoph%'
 go

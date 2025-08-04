@@ -8,7 +8,7 @@ go
 set statistics time off
 go
 
-select db_id()
+select db_id(), @@spid
 go
 
 -- Enable trace flags for vector features
@@ -53,7 +53,7 @@ go
 */
 /*
 declare @j json = (select BulkColumn from 
-			openrowset(bulk 'C:\sql-server-2025\samples\azure-sql-db-vector-search\DiskANN\Wikipedia\reference-embedding.json', single_clob) as j)
+			openrowset(bulk 'C:\Work\vector\ctp21\vector_diskann_index\datasets\reference-embedding.json', single_clob) as j)
 declare @qv vector(1536) = json_query(@j, '$."embedding-vector"')
 drop table if exists #t;
 create table #t (v vector(1536))

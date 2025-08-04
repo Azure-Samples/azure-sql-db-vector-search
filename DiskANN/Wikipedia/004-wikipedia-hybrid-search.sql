@@ -16,7 +16,7 @@ DECLARE @k INT = 10
 
 DECLARE @r INT, @e VECTOR(1536);
 
-SELECT @e = ai_generate_embeddings(@q model Ada2Embeddings);
+SELECT @e = ai_generate_embeddings(@q use model Ada2Embeddings);
 IF (@r != 0) SELECT @r;
 
 WITH keyword_search AS (
@@ -54,7 +54,7 @@ semantic_search AS
             FROM
 	            VECTOR_SEARCH(
 		            TABLE = [dbo].[wikipedia_articles_embeddings] as t, 
-		            COLUMN = [content_vector_ada2], 
+		            COLUMN = [content_vector], 
 		            SIMILAR_TO = @e, 
 		            METRIC = 'cosine', 
 		            TOP_N = @k
