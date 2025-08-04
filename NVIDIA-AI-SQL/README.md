@@ -17,7 +17,8 @@ This Jupyter Notebook implements **Retrieval-Augmented Generation (RAG)** using 
    ```bash
    NVIDIA_API_KEY=your_nvidia_api_key_here
    NVIDIA_CHAT_API_KEY=your_nvidia_chat_model_api_key_here
-   AZUREDOCINTELLIGENCE_ENDPOINT=your_azure_doc_intelligence_endpoint_here   AZUREDOCINTELLIGENCE_API_KEY=your_azure_doc_intelligence_api_key_here
+   AZUREDOCINTELLIGENCE_ENDPOINT=your_azure_doc_intelligence_endpoint_here
+   AZUREDOCINTELLIGENCE_API_KEY=your_azure_doc_intelligence_api_key_here
    AZURE_SQL_CONNECTION_STRING=your_azure_sql_connection_string_here
    FILE_PATH=Path to the resume dataset
    ```
