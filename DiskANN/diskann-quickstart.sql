@@ -4,6 +4,10 @@ GO
 USE DiskANNQuickstart;
 GO
 
+-- Make sure you use CTP 2.1 for this sample
+SELECT @@VERSION
+GO
+
 -- Step 0: Enable Preview Feature
 DBCC TRACEON(466, 474, 13981, -1) 
 GO
@@ -57,7 +61,9 @@ go
 
 -- Step 5: View index details
 SELECT * FROM sys.indexes WHERE name = 'vec_idx';
--- SELECT * FROM sys.vector_indexes; -- TDB
+GO
+SELECT * FROM sys.vector_indexes; 
+GO
 
 -- Step 6: Clean up by dropping the table
 DROP INDEX vec_idx ON Articles;
