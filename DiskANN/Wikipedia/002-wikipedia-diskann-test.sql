@@ -24,15 +24,18 @@ go
 --- Monitor index creation progress using:
 --- select session_id, status, command, percent_complete from sys.dm_exec_requests where session_id = <session id>
 
-create vector index vec_idx on [dbo].[wikipedia_articles_embeddings]([title_vector_ada2]) 
+create vector index vec_idx on [dbo].[wikipedia_articles_embeddings]([title_vector]) 
 with (metric = 'cosine', type = 'diskann', maxdop=8); 
 go
 
-create vector index vec_idx2 on [dbo].[wikipedia_articles_embeddings]([content_vector_ada2]) 
+create vector index vec_idx2 on [dbo].[wikipedia_articles_embeddings]([content_vector]) 
 with (metric = 'cosine', type = 'diskann'); 
 go
 
 select * from sys.indexes where type = 8
+go
+
+select * from sys.vector_indexes
 go
 
 -- Enable io statistics
