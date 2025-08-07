@@ -4,7 +4,7 @@ Semantic Kernel is an SDK that integrates Large Language Models (LLMs) like Open
 
 A plugin to use SQL Server and Azure SQL as a vector store is available here:
 
-[Connectors.Memory.SqlServer](https://github.com/microsoft/semantic-kernel/tree/main/dotnet/src/Connectors/Connectors.Memory.SqlServer)
+[Microsoft.SemanticKernel.Connectors.SqlServer](https://github.com/microsoft/semantic-kernel/tree/main/dotnet/src/VectorData/SqlServer)
 
 Semantic Kernel provides native SQL Server support both for the [legacy Memory Store](https://learn.microsoft.com/semantic-kernel/concepts/vector-store-connectors/memory-stores/?pivots=programming-language-csharp) and the new [Vector Store](https://learn.microsoft.com/semantic-kernel/concepts/vector-store-connectors/?pivots=programming-language-csharp). Samples on how to use both are available in this repository:
 
