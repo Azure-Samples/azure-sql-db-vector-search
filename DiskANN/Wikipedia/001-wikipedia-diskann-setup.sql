@@ -38,7 +38,8 @@ with (
     tablock
 )
 go
-select row_count from sys.dm_db_partition_stats where object_id = OBJECT_ID('[dbo].[wikipedia_articles_embeddings]')
+select row_count from sys.dm_db_partition_stats 
+where object_id = OBJECT_ID('[dbo].[wikipedia_articles_embeddings]') and index_id in (0, 1)
 go
 
 /*
