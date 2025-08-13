@@ -12,20 +12,18 @@ select db_id(), @@spid
 go
 
 -- Enable trace flags for vector features
-dbcc traceon (466, 474, 13981, -1) 
+alter database scoped configuration
+set preview_features = on;
 go
-
--- Check trace flags status
-dbcc tracestatus
+select * from sys.database_scoped_configurations where [name] = 'preview_features'
 go
 
 --- Create Indexes 
---- (with 16 vCores, creation time is expected to be ~1:00 minutes for each index)
+--- (with 16 vCores, creation time is expected to be 50 seconds for each index)
 --- Monitor index creation progress using:
 --- select session_id, status, command, percent_complete from sys.dm_exec_requests where session_id = <session id>
-
 create vector index vec_idx on [dbo].[wikipedia_articles_embeddings]([title_vector]) 
-with (metric = 'cosine', type = 'diskann', maxdop=8); 
+with (metric = 'cosine', type = 'diskann'); 
 go
 
 create vector index vec_idx2 on [dbo].[wikipedia_articles_embeddings]([content_vector]) 
@@ -82,6 +80,8 @@ end
 create database scoped credential [https://xyz.openai.azure.com/]
 with identity = 'HTTPEndpointHeaders', secret = '{"api-key": ""}'; -- Add your Azure OpenAI Key
 go
+select * from sys.[database_scoped_credentials]
+go
 
 -- Enable external rest endpoint used by get_embeddings procedure
 exec sp_configure 'external rest endpoint enabled', 1
@@ -100,13 +100,15 @@ with (
       model = 'embeddings'
 );
 go
+select * from sys.external_models
+go
 
 -- Generate embeddings and save it for future use
 declare @qv vector(1536)
 drop table if exists #t;
 create table #t (v vector(1536))
 insert into #t 
-select ai_generate_embeddings(N'The foundation series by Isaac Asimov' model Ada2Embeddings);
+select ai_generate_embeddings(N'The foundation series by Isaac Asimov' use model Ada2Embeddings);
 select * from  #t
 go
 
@@ -119,7 +121,7 @@ select
 from
 	vector_search(
 		table = [dbo].[wikipedia_articles_embeddings] as t, 
-		column = [content_vector_ada2], 
+		column = [content_vector], 
 		similar_to = @qv, 
 		metric = 'cosine', 
 		top_n = 50
@@ -132,8 +134,48 @@ go
 	RUN KNN (Exact) VECTOR SEARCH
 */
 declare @qv vector(1536) = (select top(1) v from #t);
-select top (50) id, vector_distance('cosine', @qv, [content_vector_ada2]) as distance, title
+select top (50) id, vector_distance('cosine', @qv, [content_vector]) as distance, title
 from [dbo].[wikipedia_articles_embeddings]
 order by distance
 ;
 go
+
+
+/*
+	Calculate Recall
+*/
+declare @n int = 50;
+declare @qv vector(1536) = (select top(1) v from #t);
+with cteANN as
+(
+	select top (@n)
+		t.id, s.distance, t.title
+	from
+		vector_search(
+			table = [dbo].[wikipedia_articles_embeddings] as t, 
+			column = [content_vector], 
+			similar_to = @qv, 
+			metric = 'cosine', 
+			top_n = @n
+		) as s
+	order by s.distance, id
+),
+cteKNN as
+(
+	select top (@n) id, vector_distance('cosine', @qv, [content_vector]) as distance, title
+	from [dbo].[wikipedia_articles_embeddings]
+	order by distance, id	
+)
+select
+	k.id as id_knn,
+	a.id as id_ann,
+	k.distance as distance_knn,
+	a.distance as distance_ann,
+	running_recall = cast(cast(count(a.id) over (order by k.distance) as float) 
+				/ cast(count(k.id) over (order by k.distance) as float) as decimal(6,3))
+from
+	cteKNN k
+left outer join
+	cteANN a on k.id = a.id
+order by
+	k.distance

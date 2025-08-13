@@ -26,7 +26,7 @@ go
     https://cdn.openai.com/API/examples/data/vector_database_wikipedia_articles_embedded.zip
 */
 bulk insert dbo.[wikipedia_articles_embeddings]
-from 'C:\Work\vector\ctp21\vector_diskann_index\datasets\vector_database_wikipedia_articles_embedded.csv'
+from 'C:\Work\vector\rc0\vector_diskann_index\datasets\vector_database_wikipedia_articles_embedded.csv'
 with (	
     format = 'csv',
     firstrow = 2,
