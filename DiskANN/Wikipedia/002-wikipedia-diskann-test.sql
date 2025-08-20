@@ -1,5 +1,5 @@
 /*
-	This script requires SQL Server 2025
+	This script requires SQL Server 2025 RC0
 */
 
 use WikipediaTest
@@ -19,7 +19,7 @@ select * from sys.database_scoped_configurations where [name] = 'preview_feature
 go
 
 --- Create Indexes 
---- (with 16 vCores, creation time is expected to be 50 seconds for each index)
+--- (with 16 vCores, creation time is expected to be 40 seconds for each index)
 --- Monitor index creation progress using:
 --- select session_id, status, command, percent_complete from sys.dm_exec_requests where session_id = <session id>
 create vector index vec_idx on [dbo].[wikipedia_articles_embeddings]([title_vector]) 
@@ -30,9 +30,7 @@ create vector index vec_idx2 on [dbo].[wikipedia_articles_embeddings]([content_v
 with (metric = 'cosine', type = 'diskann'); 
 go
 
-select * from sys.indexes where type = 8
-go
-
+-- View created vector indexes
 select * from sys.vector_indexes
 go
 
@@ -51,7 +49,7 @@ go
 */
 /*
 declare @j json = (select BulkColumn from 
-			openrowset(bulk 'C:\Work\vector\ctp21\vector_diskann_index\datasets\reference-embedding.json', single_clob) as j)
+			openrowset(bulk 'C:\samples\rc0\datasets\reference-embedding.json', single_clob) as j)
 declare @qv vector(1536) = json_query(@j, '$."embedding-vector"')
 drop table if exists #t;
 create table #t (v vector(1536))
@@ -139,7 +137,6 @@ from [dbo].[wikipedia_articles_embeddings]
 order by distance
 ;
 go
-
 
 /*
 	Calculate Recall

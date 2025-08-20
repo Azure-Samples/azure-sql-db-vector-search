@@ -1,5 +1,5 @@
 /*
-	This script requires SQL Server 2025
+	This script requires SQL Server 2025 RC0
 */
 
 create database WikipediaTest
@@ -26,7 +26,7 @@ go
     https://cdn.openai.com/API/examples/data/vector_database_wikipedia_articles_embedded.zip
 */
 bulk insert dbo.[wikipedia_articles_embeddings]
-from 'C:\Work\vector\rc0\vector_diskann_index\datasets\vector_database_wikipedia_articles_embedded.csv'
+from 'C:\samples\rc0\datasets\vector_database_wikipedia_articles_embedded.csv'
 with (	
     format = 'csv',
     firstrow = 2,
