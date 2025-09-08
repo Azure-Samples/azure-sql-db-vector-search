@@ -8,7 +8,7 @@
         "Content": "You can use and store vectors easily Azure SQL and EF Core"
     },
     {
-        "Title": "EFCore.SqlServer.VectorSearch in PreRelease",
+        "Title": "EFCore.SqlServer.VectorSearch available!",
         "Content": "The NuGet package EFCore.SqlServer.VectorSearch is now available in PreRelease! With this package you can use vector search functions in your LINQ queries."
     },
     {
