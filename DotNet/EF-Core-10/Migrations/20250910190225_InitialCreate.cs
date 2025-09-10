@@ -1,8 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.Data.SqlTypes;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace EFCoreVectors.Migrations
+namespace EFCore10Vectors.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration
@@ -32,7 +33,7 @@ namespace EFCoreVectors.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Title = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Content = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Embedding = table.Column<string>(type: "vector(1536)", nullable: false),
+                    Embedding = table.Column<SqlVector<float>>(type: "vector(1536)", nullable: false),
                     BlogId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
