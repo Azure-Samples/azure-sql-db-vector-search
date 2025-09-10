@@ -4,12 +4,15 @@ GO
 USE DiskANNQuickstart;
 GO
 
--- Make sure you use CTP 2.1 for this sample
+-- Make sure you use RC0 for this sample
 SELECT @@VERSION
 GO
 
 -- Step 0: Enable Preview Feature
-DBCC TRACEON(466, 474, 13981, -1) 
+ALTER DATABASE SCOPED CONFIGURATION
+SET PREVIEW_FEATURES = ON;
+GO
+SELECT * FROM sys.database_scoped_configurations WHERE [name] = 'PREVIEW_FEATURES'
 GO
 
 -- Step 1: Create a sample table with a VECTOR(5) column
@@ -35,11 +38,13 @@ VALUES
 (8, 'AI and Society', 'Impact of AI on society.', '[0.2, 0.3, 0.5, 0.5, 0.4]'),
 (9, 'Future of AI', 'Predictions for the future of AI.', '[0.8, 0.4, 0.5, 0.1, 0.2]'),
 (10, 'AI Innovations', 'Latest innovations in AI.', '[0.4, 0.7, 0.2, 0.3, 0.1]');
+GO
 
 -- Step 3: Create a vector index on the embedding column
 CREATE VECTOR INDEX vec_idx ON Articles(embedding)
 WITH (metric = 'cosine', type = 'diskann')
 ON [PRIMARY];
+GO
 
 -- Step 4: Perform a vector similarity search
 DECLARE @qv VECTOR(5) = (SELECT TOP(1) embedding FROM Articles WHERE id = 1);
@@ -57,12 +62,10 @@ FROM
         top_n = 3
     ) AS s
 ORDER BY s.distance, t.title;
-go
+GO
 
 -- Step 5: View index details
-SELECT * FROM sys.indexes WHERE name = 'vec_idx';
-GO
-SELECT * FROM sys.vector_indexes; 
+SELECT index_id, [type], [type_desc], vector_index_type, distance_metric, build_parameters FROM sys.vector_indexes WHERE [name] = 'vec_idx';
 GO
 
 -- Step 6: Clean up by dropping the table

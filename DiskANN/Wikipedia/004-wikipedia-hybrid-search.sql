@@ -2,7 +2,7 @@
     Run Hybrid Search using Vector Search and FullText Search and then 
     using Reciprocal Ranking Fusion to calculate the final rank score
 
-	This script requires SQL Server 2025
+	This script requires SQL Server 2025 RC0
 */
 USE WikipediaTest
 go

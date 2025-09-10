@@ -17,6 +17,8 @@ select * from sys.fulltext_catalogs
 go
 
 -- Wait ~15 seconds for FT to start and process all the documents, then
+waitfor delay '00:00:15'
+go
 
 -- Check how many documents have been indexed so far (final count must be 25000)
 select count(distinct document_id) 
