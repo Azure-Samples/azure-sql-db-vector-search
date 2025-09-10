@@ -11,7 +11,7 @@ go
 select db_id(), @@spid
 go
 
--- Enable trace flags for vector features
+-- Enable trace flags for vector index features
 alter database scoped configuration
 set preview_features = on;
 go
@@ -52,9 +52,25 @@ declare @j json = (select BulkColumn from
 			openrowset(bulk 'C:\samples\rc0\datasets\reference-embedding.json', single_clob) as j)
 declare @qv vector(1536) = json_query(@j, '$."embedding-vector"')
 drop table if exists #t;
-create table #t (v vector(1536))
-insert into #t values (@qv)
+create table #t (v vector(1536));
+insert into #t values (@qv);
+select * from #t;
 go
+*/
+
+/* another option is to use a REST call and download the file from GitHub */
+/*
+declare @response nvarchar(max)
+exec sp_invoke_external_rest_endpoint 
+	@url = 'https://raw.githubusercontent.com/Azure-Samples/azure-sql-db-vector-search/refs/heads/main/DiskANN/Wikipedia/reference-embedding.json',
+	@method = 'GET',
+	@response = @response output
+
+declare @qv vector(1536) = json_query(@response, '$.result."embedding-vector"')
+drop table if exists #t;
+create table #t (v vector(1536));
+insert into #t values (@qv);
+select * from #t;
 */
 
 /*
@@ -107,7 +123,7 @@ drop table if exists #t;
 create table #t (v vector(1536))
 insert into #t 
 select ai_generate_embeddings(N'The foundation series by Isaac Asimov' use model Ada2Embeddings);
-select * from  #t
+select * from #t;
 go
 
 /*
@@ -124,8 +140,7 @@ from
 		metric = 'cosine', 
 		top_n = 50
 	) as s
-order by s.distance, title
-;
+order by s.distance, title;
 go
 
 /*
@@ -134,14 +149,13 @@ go
 declare @qv vector(1536) = (select top(1) v from #t);
 select top (50) id, vector_distance('cosine', @qv, [content_vector]) as distance, title
 from [dbo].[wikipedia_articles_embeddings]
-order by distance
-;
+order by distance;
 go
 
 /*
 	Calculate Recall
 */
-declare @n int = 50;
+declare @n int = 100;
 declare @qv vector(1536) = (select top(1) v from #t);
 with cteANN as
 (
