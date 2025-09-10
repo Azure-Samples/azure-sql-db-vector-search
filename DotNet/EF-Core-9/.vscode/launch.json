@@ -1,0 +1,13 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "C#: EFCoreVectors",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}\\EFCoreVectors.csproj",
+            "launchConfigurationId": "TargetFramework=;EFCoreVectors",            
+            "envFile": "${workspaceFolder}\\.env"
+        }
+    ]
+}
