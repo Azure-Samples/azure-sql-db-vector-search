@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.002.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCoreVectors", "EFCoreVectors.csproj", "{4BE4677C-0423-4A66-B136-F17731763AF2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EFCore9Vectors", "EFCore9Vectors.csproj", "{4BE4677C-0423-4A66-B136-F17731763AF2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,11 +1,5 @@
-﻿using System;
-using System.Linq;
-using Azure;
-using Azure.AI.OpenAI;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using EFCore.SqlServer.VectorSearch;
 using DotNetEnv;
 using EFCoreVectors;
 

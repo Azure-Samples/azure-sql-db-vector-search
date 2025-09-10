@@ -1,9 +1,6 @@
 using Azure;
 using Azure.AI.OpenAI;
 using DotNetEnv;
-using OpenAI.Embeddings;
-using System;
-using System.Linq;
 
 namespace EFCoreVectors;
 
@@ -14,8 +11,8 @@ public interface IEmbeddingClient
 
 public class AzureOpenAIEmbeddingClient: IEmbeddingClient
 {
-    static AzureKeyCredential credentials = new(Env.GetString("OPENAI_KEY"));
-    static AzureOpenAIClient aiClient = new(new Uri(Env.GetString("OPENAI_URL")), credentials);
+    static readonly AzureKeyCredential credentials = new(Env.GetString("OPENAI_KEY"));
+    static readonly AzureOpenAIClient aiClient = new(new Uri(Env.GetString("OPENAI_URL")), credentials);
 
     public float[] GetEmbedding(string text, int dimensions = 1536)
     {
@@ -39,8 +36,6 @@ public class MockEmbeddingClient: IEmbeddingClient
     public float[] GetEmbedding(string text, int dimensions = 1536)
     {
         Random random = new();
-        return Enumerable.Range(0, dimensions)
-                         .Select(_ => (float)random.NextDouble())
-                         .ToArray();
+        return [.. Enumerable.Range(0, dimensions).Select(_ => (float)random.NextDouble())];
     }   
 }
