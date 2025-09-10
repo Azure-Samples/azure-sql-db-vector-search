@@ -5,6 +5,7 @@ SQL Server 2025 introduces a new `VECTOR_SEARCH` function that allows you to per
 The samples in this folder demonstrate how to use the `VECTOR_SEARCH` function with DiskANN. The samples include:
 
 - Creating a table with a vector column, importing data from a CSV file, and inserting data into the table.
+- Creating a approximate vector index on the table using `CREATE VECTOR INDEX` statement.
 - Performing approximate nearest neighbor search using the `VECTOR_SEARCH` function.
 - Performing hybrid search using the `VECTOR_SEARCH` function along with full-text search.
 

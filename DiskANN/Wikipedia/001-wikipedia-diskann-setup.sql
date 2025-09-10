@@ -1,5 +1,5 @@
 /*
-	This script requires SQL Server 2025
+	This script requires SQL Server 2025 RC0
 */
 
 create database WikipediaTest
@@ -26,7 +26,7 @@ go
     https://cdn.openai.com/API/examples/data/vector_database_wikipedia_articles_embedded.zip
 */
 bulk insert dbo.[wikipedia_articles_embeddings]
-from 'C:\Work\vector\ctp21\vector_diskann_index\datasets\vector_database_wikipedia_articles_embedded.csv'
+from 'C:\samples\rc0\datasets\vector_database_wikipedia_articles_embedded.csv'
 with (	
     format = 'csv',
     firstrow = 2,
@@ -38,7 +38,8 @@ with (
     tablock
 )
 go
-select row_count from sys.dm_db_partition_stats where object_id = OBJECT_ID('[dbo].[wikipedia_articles_embeddings]')
+select row_count from sys.dm_db_partition_stats 
+where object_id = OBJECT_ID('[dbo].[wikipedia_articles_embeddings]') and index_id in (0, 1)
 go
 
 /*
