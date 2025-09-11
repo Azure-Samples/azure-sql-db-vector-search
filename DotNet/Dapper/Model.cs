@@ -14,8 +14,7 @@ public class Post
     public int PostId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
-    // We'll use SqlVector<float> to represent the SQL Server vector type when passing to SqlClient
-    public SqlVector<float>? Embedding { get; set; }
+    public float[]? Embedding { get; set; }
     public int BlogId { get; set; }
 }
 
