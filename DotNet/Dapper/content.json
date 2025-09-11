@@ -1,0 +1,14 @@
+[
+  {
+    "Title": "My first Dapper app!",
+    "Content": "I wrote an app using Dapper!"
+  },
+  {
+    "Title": "Vectors with Azure SQL and Dapper",
+    "Content": "You can store vectors in Azure SQL and query them from Dapper by passing SqlVector parameters to Microsoft.Data.SqlClient."
+  },
+  {
+    "Title": "Dapper and vector search",
+    "Content": "This sample shows how to use Dapper for vector-enabled queries against Azure SQL (vector column type)."
+  }
+]
