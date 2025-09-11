@@ -60,6 +60,11 @@ go
 
 /* another option is to use a REST call and download the file from GitHub */
 /*
+-- Enable external rest endpoint used by sp_invoke_external_rest_endpoint procedure
+exec sp_configure 'external rest endpoint enabled', 1
+reconfigure
+go
+
 declare @response nvarchar(max)
 exec sp_invoke_external_rest_endpoint 
 	@url = 'https://raw.githubusercontent.com/Azure-Samples/azure-sql-db-vector-search/refs/heads/main/DiskANN/Wikipedia/reference-embedding.json',
@@ -97,11 +102,6 @@ go
 select * from sys.[database_scoped_credentials]
 go
 
--- Enable external rest endpoint used by get_embeddings procedure
-exec sp_configure 'external rest endpoint enabled', 1
-reconfigure
-go
-
 -- Create reference to OpenAI model
 --drop external model Ada2Embeddings
 --go
@@ -115,6 +115,11 @@ with (
 );
 go
 select * from sys.external_models
+go
+
+-- Enable external rest endpoint used by ai_generate_embeddings function
+exec sp_configure 'external rest endpoint enabled', 1
+reconfigure
 go
 
 -- Generate embeddings and save it for future use
