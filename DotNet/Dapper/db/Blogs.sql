@@ -1,4 +1,3 @@
-/****** Object:  Table [dbo].[Blogs]    Script Date: 9/11/2025 ******/
 IF NOT EXISTS (SELECT * FROM sys.tables WHERE object_id = OBJECT_ID(N'[dbo].[Blogs]'))
 BEGIN
 CREATE TABLE [dbo].[Blogs]
