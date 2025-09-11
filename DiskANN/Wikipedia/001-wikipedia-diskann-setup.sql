@@ -61,5 +61,9 @@ go
 select top (10) * from [dbo].[wikipedia_articles_embeddings]
 go
 
-select * from [dbo].[wikipedia_articles_embeddings] where title like 'Philosoph%'
+select *,
+	DATALENGTH(content_vector) as bytes, 
+	DATALENGTH(CAST(content_vector as varchar(max))) as chars
+from 
+	[dbo].[wikipedia_articles_embeddings] where title like 'Philosoph%'
 go
