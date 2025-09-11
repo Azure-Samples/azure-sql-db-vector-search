@@ -8,6 +8,10 @@ using DapperVectors;
 // Load .env
 Env.Load();
 
+// Update Dapper Type Handler to handle SqlVector<T>
+SqlMapper.AddTypeHandler(new VectorTypeHandler());
+
+// Get connection string from environment variable
 var connectionString = Environment.GetEnvironmentVariable("MSSQL");
 if (string.IsNullOrWhiteSpace(connectionString))
 {
@@ -15,8 +19,8 @@ if (string.IsNullOrWhiteSpace(connectionString))
     return;
 }
 
+// Create SQL connection
 await using var connection = new SqlConnection(connectionString);
-await connection.OpenAsync();
 
 // Confirm database project objects exist
 var tableExists = await connection.ExecuteScalarAsync<int?>(
@@ -54,35 +58,34 @@ foreach (var np in newPosts)
 {
     // compute embedding
     var vector = embeddingClient.GetEmbedding(np.Content);
-    var sqlVector = new SqlVector<float>(vector);
 
     // check if post exists for this blog
     var existingPostId = await connection.QuerySingleOrDefaultAsync<int?>(
         "SELECT PostId FROM dbo.Posts WHERE BlogId = @BlogId and Title = @Title",
-        new { BlogId = blogId, @Title = np.Title });
+        new { BlogId = blogId, Title = np.Title });
 
     if (existingPostId.HasValue)
     {
         await connection.ExecuteAsync(
             "UPDATE dbo.Posts SET Content = @Content, Embedding = @Embedding WHERE PostId = @PostId",
-            new { np.Content, Embedding = sqlVector, PostId = existingPostId.Value }
+            new { np.Content, Embedding = vector, PostId = existingPostId.Value }
         );
     }
     else
     {
         await connection.ExecuteAsync(
             "INSERT INTO dbo.Posts (Title, Content, Embedding, BlogId) VALUES (@Title, @Content, @Embedding, @BlogId)",
-            new { np.Title, np.Content, Embedding = sqlVector, BlogId = blogId }
+            new { np.Title, np.Content, Embedding = vector, BlogId = blogId }
         );
     }
 }
 
 // Query for similar posts
 Console.WriteLine("\n----------\n");
-string searchPhrase = "I want to use Azure SQL, EF Core and vectors in my app!";
+string searchPhrase = "I want to use Azure SQL, Dapper and vectors in my app!";
 Console.WriteLine($"Search phrase is: '{searchPhrase}'...");
 
-var queryVector = new SqlVector<float>(embeddingClient.GetEmbedding(searchPhrase));
+var queryVector = embeddingClient.GetEmbedding(searchPhrase);
 
 var sql = @"
 SELECT TOP (5) p.Title,
