@@ -26,13 +26,13 @@ pip install -r requirements.txt
 Create an environment file `.env` with the connection string to Azure SQL database. You can use the `.env.sample` as a starting point. The sample `.env` file shows how to use Entra ID to connect to the database, which looks like:
 
 ```text
-MSSQL='Driver={ODBC Driver 18 for SQL Server};Server=tcp:<server>,1433;Database=<database>;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30'
+MSSQL='Driver={ODBC Driver 18 for SQL Server};Server=tcp:<server>,1433;Database=<database>;Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;LongAsMax=yes;'
 ```
 
 If you want to use SQL Authentication the connection string would instead look like the following:
 
 ```
-MSSQL='Driver={ODBC Driver 18 for SQL Server};Server=tcp:<server>,1433;Database=<database>;UID=<user>;PWD=<password>;Encrypt=yes;TrustServerCertificate=yes;Connection Timeout=30'
+MSSQL='Driver={ODBC Driver 18 for SQL Server};Server=tcp:<server>,1433;Database=<database>;UID=<user>;PWD=<password>;Encrypt=yes;TrustServerCertificate=yes;Connection Timeout=30;LongAsMax=yes;'
 ```
 
 Then run the script:    

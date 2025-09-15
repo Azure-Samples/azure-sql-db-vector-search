@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Text;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using OpenAI.Embeddings;
 
 namespace SqlServer.NativeVectorSearch.Samples

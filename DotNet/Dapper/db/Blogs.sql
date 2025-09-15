@@ -1,0 +1,10 @@
+CREATE TABLE [dbo].[Blogs]
+(
+    [BlogId] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    [Name] NVARCHAR(200) NOT NULL,
+    [Url] NVARCHAR(400) NOT NULL
+);
+GO
+
+CREATE UNIQUE INDEX IX_Blogs_Name ON [dbo].[Blogs]([Name]);
+GO

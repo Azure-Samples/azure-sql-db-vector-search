@@ -14,7 +14,8 @@ if __name__ == '__main__':
     sentences = [
         'The dog is barking',
         'The cat is purring',
-        'The bear is growling'
+        'The bear is growling',
+        'The bear roars'
     ]
     model = SentenceTransformer('multi-qa-MiniLM-L6-cos-v1') # returns a 384-dimensional vector
     embeddings = model.encode(sentences)
@@ -51,7 +52,7 @@ if __name__ == '__main__':
     query = 'growling bear'
     embedding = model.encode(query)    
     
-    print('Querying database...')  
+    print(f'Querying database for "{query}"...') 
     k = 5  
     try:
         cursor = conn.cursor()  
@@ -63,16 +64,18 @@ if __name__ == '__main__':
             WITH keyword_search AS (
                 SELECT TOP(@k)
                     id, 
-                    RANK() OVER (ORDER BY rank) AS rank
+                    RANK() OVER (ORDER BY ft_rank DESC) AS rank
                 FROM
                     (
                         SELECT TOP(@k)
                             id,
-                            ftt.[RANK] AS rank
+                            ftt.[RANK] AS ft_rank
                         FROM 
                             dbo.documents 
                         INNER JOIN 
                             FREETEXTTABLE(dbo.documents, *, @q) AS ftt ON dbo.documents.id = ftt.[KEY]
+                        ORDER BY
+                            ft_rank DESC
                     ) AS freetext_documents
             ),
             semantic_search AS
@@ -88,17 +91,31 @@ if __name__ == '__main__':
                         FROM 
                             dbo.documents
                     ) AS similar_documents
-            )
-            SELECT TOP(@k)
-                COALESCE(ss.id, ks.id) AS id,
-                COALESCE(1.0 / (@k + ss.rank), 0.0) +
-                COALESCE(1.0 / (@k + ks.rank), 0.0) AS score -- Reciprocal Rank Fusion (RRF) 
+            ),
+            result AS (
+                SELECT TOP(@k)
+                    COALESCE(ss.id, ks.id) AS id,
+                    ss.rank AS semantic_rank,
+                    ks.rank AS keyword_rank,
+                    COALESCE(1.0 / (@k + ss.rank), 0.0) +
+                    COALESCE(1.0 / (@k + ks.rank), 0.0) AS score -- Reciprocal Rank Fusion (RRF) 
+                FROM
+                    semantic_search ss
+                FULL OUTER JOIN
+                    keyword_search ks ON ss.id = ks.id
+                ORDER BY 
+                    score DESC
+            )   
+            SELECT
+                d.id,
+                semantic_rank,
+                keyword_rank,
+                score,
+                content
             FROM
-                semantic_search ss
-            FULL OUTER JOIN
-                keyword_search ks ON ss.id = ks.id
-            ORDER BY 
-                score DESC
+                result AS r
+            INNER JOIN
+                dbo.documents AS d ON r.id = d.id
             """,
             k,
             query, 
@@ -106,7 +123,7 @@ if __name__ == '__main__':
         )
 
         for row in results:
-            print(f'Document: {row[0]} -> RRF score: {row[1]:0.4}')
+            print(f'Document: {row[0]} (content: {row[4]}) -> RRF score: {row[3]:0.4} (Semantic Rank: {row[1]}, Keyword Rank: {row[2]})')
 
     finally:
         cursor.close()
