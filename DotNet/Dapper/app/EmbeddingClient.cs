@@ -1,5 +1,6 @@
 using Azure;
 using Azure.AI.OpenAI;
+using Azure.Identity;
 using DotNetEnv;
 
 namespace DapperVectors;
@@ -11,8 +12,18 @@ public interface IEmbeddingClient
 
 public class AzureOpenAIEmbeddingClient : IEmbeddingClient
 {
-    static readonly AzureKeyCredential credentials = new(Env.GetString("OPENAI_KEY"));
-    static readonly AzureOpenAIClient aiClient = new(new Uri(Env.GetString("OPENAI_URL")), credentials);
+    static readonly AzureOpenAIClient aiClient;
+
+    static AzureOpenAIEmbeddingClient()
+    {
+        var endpoint = new Uri(Env.GetString("OPENAI_URL"));
+
+        aiClient = Env.GetString("OPENAI_KEY") switch
+        {
+            null or "" => new AzureOpenAIClient(endpoint, new DefaultAzureCredential()),
+            string key => new AzureOpenAIClient(endpoint, new AzureKeyCredential(key)),
+        };
+    }
 
     public float[] GetEmbedding(string text, int dimensions = 1536)
     {

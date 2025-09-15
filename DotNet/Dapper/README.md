@@ -7,6 +7,7 @@ Make sure the create the tables using the scripts in the `db` folder before runn
 Create a `.env` file from `.env.example` and fill in the required values, then run the  application
 
 ```bash
+cd app
 dotnet run
 ```
 

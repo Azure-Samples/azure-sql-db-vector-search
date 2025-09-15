@@ -20,6 +20,7 @@ if (string.IsNullOrWhiteSpace(connectionString))
 }
 
 // Create SQL connection
+Console.WriteLine("Connecting to database...");
 await using var connection = new SqlConnection(connectionString);
 
 // Confirm database project objects exist
@@ -28,7 +29,7 @@ var tableExists = await connection.ExecuteScalarAsync<int?>(
 
 if (tableExists.GetValueOrDefault() != 2)
 {
-    Console.WriteLine("The database schema does not appear to be deployed. Please publish the Dapper database project in the Dapper/DatabaseProject folder before running this sample.");
+    Console.WriteLine("The database schema does not appear to be deployed. Please publish the database project in the `db` folder before running this sample.");
     return;
 }
 
@@ -46,14 +47,14 @@ if (!blogId.HasValue)
     );
 }
 
-Console.WriteLine("Adding posts...");
-var content = File.ReadAllText("content.json");
-var newPosts = JsonSerializer.Deserialize<List<SavedPost>>(content)!;
-
 // Choose real or mock embedding client
+Console.WriteLine("Creating embedding client...");
 var embeddingClient = new AzureOpenAIEmbeddingClient();
 // var embeddingClient = new MockEmbeddingClient();
 
+Console.WriteLine("Adding posts...");
+var content = File.ReadAllText("content.json");
+var newPosts = JsonSerializer.Deserialize<List<SavedPost>>(content)!;
 foreach (var np in newPosts)
 {
     // compute embedding
