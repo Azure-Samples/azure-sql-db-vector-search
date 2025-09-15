@@ -3,7 +3,9 @@ using Dapper;
 using Microsoft.Data.SqlTypes;
 using Microsoft.Data;
 
-public class VectorTypeHandler: SqlMapper.TypeHandler<float[]>
+namespace DapperVectors;
+
+public class VectorTypeHandler : SqlMapper.TypeHandler<float[]>
 {
     public override float[] Parse(object value)
     {
