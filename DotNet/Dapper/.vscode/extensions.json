@@ -1,0 +1,6 @@
+{   
+  "recommendations": [ 
+    "ms-mssql.mssql",
+    "ms-mssql.sql-database-projects-vscode"
+  ]
+} 

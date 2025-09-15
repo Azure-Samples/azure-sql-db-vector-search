@@ -40,3 +40,9 @@ You can now compare it with another variable to find how similar they are:
 select
     vector_distance('cosine', @king, @queen) as 'King vs Queen'
 ```
+
+## Use triggers to automatically update embeddings
+
+Use the `04-update-embeddings-with-trigger.sql` to create a trigger that will automatically update the embeddings when a new row is inserted into the table or when the content is updated.
+
+To learn about other ways to keep embeddings updated, read the post here: [Storing, querying and keeping embeddings updated: options and best practices](https://devblogs.microsoft.com/azure-sql/storing-querying-and-keeping-embeddings-updated-options-and-best-practices/)
