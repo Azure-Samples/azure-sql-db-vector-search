@@ -3,10 +3,10 @@
     "SqlServer.NativeVectorSearch.Samples": {
       "commandName": "Project",
       "environmentVariables": {
-        "ApiKey": "***",
-        "EmbeddingModelName": "***",
-        "SqlConnStr": "***"
+        "ApiKey": "",
+        "EmbeddingModelName": "",
+        "SqlConnStr": ""
       }
     }
   }
-}
+}a
