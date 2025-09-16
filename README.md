@@ -8,11 +8,11 @@ To use the provided samples make sure you have the following pre-requisites:
 
 1. An Azure subscription - [Create one for free](https://azure.microsoft.com/pricing/purchase-options/azure-account)
 
-1. Azure SQL Database - [Create one for free](https:/learn.microsoft.com/azure/azure-sql/database/free-offer?view=azuresql)
+1. Azure SQL Database - [Create one for free](https:/learn.microsoft.com/azure/azure-sql/database/free-offer?view=azuresql) or [SQL Server 2025 RC1](https://www.microsoft.com/en-us/evalcenter/sql-server-2025-downloads) if you want to test DiskANN.
 
 1. Make sure you have an [Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/overview) resource created in your Azure subscription.
 
-1. Azure Data Studio - [Download for free](https://learn.microsoft.com/azure-data-studio/download-azure-data-studio) to use the notebooks offline. [SQL Server Management Studio](https://learn.microsoft.com/sql/ssms/download-sql-server-management-studio-ssms) is also an option if you don't want to use notebook offline.
+1. Visual Studio Code with MSSQL Extension - Download it for [Free](https://code.visualstudio.com/) and then install the [MSSQL](https://marketplace.visualstudio.com/items?itemName=ms-mssql.mssql) extension, or [SQL Server Management Studio](https://learn.microsoft.com/sql/ssms/download-sql-server-management-studio-ssms).
 
 1. If you are going to clone this repository in your machine, make sure to have installed the `git-lfs` extension: [Git Large File Storage](https://git-lfs.com/)
 
@@ -46,17 +46,21 @@ The [DiskANN](./DiskANN/) folder contains a sample that demonstrates how to use 
 
 This sample, at the moment, requires SQL Server 2025. See the announcement here: [Announcing Public Preview of DiskANN in SQL Server 2025](https://techcommunity.microsoft.com/blog/sqlserver/announcing-public-preview-of-diskann-in-sql-server-2025/4414683).
 
-#### Hybrid Search
+#### DiskANN and Hybrid Search
 
 Using DiskANN together with FullText enables you to do hybrid search. The [DiskANN](./DiskANN/) folder contains the file `004-wikipedia-hybrid-search.sql` that demonstrates how to use the the new `VECTOR_SEARCH` function along with `FREETEXTTABLE` to implement hybrid search with Reciprocal Rank Fusion (RRF) and BM25 ranking.
 
 ### SQL Client
 
-If you are using SQL Client directly in your applications, you can use the [SqlClient](./DotNet/SqlClient) folder to see how to use Native Vector Search in C#/.NET. 
+If you are using SQL Client directly in your applications, you can use the [SqlClient](./DotNet) folder to see how to use Native Vector Search in C#/.NET.
 
 ### Entity Framework Core
 
-If you are using .NET EF Core, you can use the [EF-Core](./DotNet/EF-Core) sample to see how to use the new vector functions in your application.
+If you are using .NET EF Core, you can use the [EF-Core](./DotNet) sample to see how to use the new vector functions in your application.
+
+### Dapper
+
+If you are using the MicroORM Dapper, you can use the [Dapper](./DotNet) sample to see how to use the new vector functions in your application.
 
 ### Semantic Kernel
 
