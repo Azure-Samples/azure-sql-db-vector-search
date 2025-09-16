@@ -8,6 +8,12 @@ The samples in this folder demonstrate how to use the `VECTOR_SEARCH` function w
 - Creating a approximate vector index on the table using `CREATE VECTOR INDEX` statement.
 - Performing approximate nearest neighbor search using the `VECTOR_SEARCH` function.
 - Performing hybrid search using the `VECTOR_SEARCH` function along with full-text search.
+- Use Half-Precision floating points to store embeddings to have a more compact representation of vectors.
+- Use the Vectorizer to generate embeddings for text data.
+
+## Vectorizer
+
+To quickly generate embeddings for existing text data, you can use the Vectorizer, which is available as an sample open-source project here: [azure-sql-db-vectorizer](https://github.com/Azure-Samples/azure-sql-db-vectorizer)
 
 ## End-To-End sample
 
