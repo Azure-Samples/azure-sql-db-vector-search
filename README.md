@@ -12,7 +12,9 @@ To use the provided samples make sure you have the following pre-requisites:
 
 1. Make sure you have an [Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/overview) resource created in your Azure subscription.
 
-1. Visual Studio Code with MSSQL Extension - Download it for [Free](https://code.visualstudio.com/) and then install the [MSSQL](https://marketplace.visualstudio.com/items?itemName=ms-mssql.mssql) extension, or [SQL Server Management Studio](https://learn.microsoft.com/sql/ssms/download-sql-server-management-studio-ssms).
+1. Visual Studio Code with MSSQL Extension
+   - Download it for [Free](https://code.visualstudio.com/) and then install the [MSSQL](https://marketplace.visualstudio.com/items?itemName=ms-mssql.mssql) extension, or
+   - [SQL Server Management Studio](https://learn.microsoft.com/sql/ssms/download-sql-server-management-studio-ssms).
 
 1. If you are going to clone this repository in your machine, make sure to have installed the `git-lfs` extension: [Git Large File Storage](https://git-lfs.com/)
 
