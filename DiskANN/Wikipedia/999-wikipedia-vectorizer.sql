@@ -5,29 +5,35 @@
 
     to vectorize all the existing text in the database
 */
-drop table if exists [dbo].[wa];
-drop table if exists [dbo].[wa_text_embeddings];
+drop table if exists [dbo].[wikipedia_articles];
+drop table if exists [dbo].[wikipedia_articles_text_embeddings];
 go
 
 select [id], [url], [title], [text] 
-into [dbo].[wa]
+into [dbo].[wikipedia_articles]
 from [dbo].[wikipedia_articles_embeddings]
 go
 
-alter table [dbo].[wa]
-add constraint pk__wa primary key clustered (id)
+alter table [dbo].[wikipedia_articles]
+add constraint pk__wikipedia_articles primary key clustered (id)
 go
 
-select * from [dbo].[wa] where title = 'Alan Turing'
+select * from [dbo].[wikipedia_articles] where title = 'Alan Turing'
 go
 
-select top(10) * from [dbo].[wa_text_embeddings]
+-- Run the Database Vectorizer tool
+-- to generate embeddings and store them into the [dbo].[wa_text_embeddings] table.
+
+select top(10) * from [dbo].[wikipedia_articles_text_embeddings]
+order by parent_id
 go
 
-select * from [dbo].[wa] where id = 1
+select * from [dbo].[wikipedia_articles_text_embeddings] where id = 1
 go
 
-create view dbo.vw_test
-as
-select [id], [parent_id], [chunk_text], [text_te3s] from  [dbo].[wa_text_embeddings]
+select parent_id, count(*) from [dbo].[wikipedia_articles_text_embeddings] group by parent_id having count(*) > 1
+go
+
+select * from [dbo].[wikipedia_articles_text_embeddings] where parent_id = 3796
+order by id
 go
