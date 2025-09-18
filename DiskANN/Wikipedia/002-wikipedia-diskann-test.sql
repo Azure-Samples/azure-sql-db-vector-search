@@ -11,7 +11,7 @@ go
 select db_id(), @@spid
 go
 
--- Enable trace flags for vector index features
+-- Enable preview_features configuration for vector index features
 alter database scoped configuration
 set preview_features = on;
 go
@@ -19,7 +19,7 @@ select * from sys.database_scoped_configurations where [name] = 'preview_feature
 go
 
 --- Create Indexes 
---- (with 16 vCores, creation time is expected to be 40 seconds for each index)
+--- (with 16 vCores, creation time is expected to be 30 seconds for each index)
 --- Monitor index creation progress using:
 --- select session_id, status, command, percent_complete from sys.dm_exec_requests where session_id = <session id>
 create vector index vec_idx on [dbo].[wikipedia_articles_embeddings]([title_vector]) 
@@ -49,7 +49,7 @@ go
 */
 /*
 declare @j json = (select BulkColumn from 
-			openrowset(bulk 'C:\samples\rc0\datasets\reference-embedding.json', single_clob) as j)
+			openrowset(bulk 'C:\samples\rc1\datasets\reference-embedding.json', single_clob) as j)
 declare @qv vector(1536) = json_query(@j, '$."embedding-vector"')
 drop table if exists #t;
 create table #t (v vector(1536));
@@ -58,7 +58,14 @@ select * from #t;
 go
 */
 
-/* another option is to use a REST call and download the file from GitHub */
+/*
+	Option 2: Get the pre-calculated embedding via REST call
+
+	The following code loads a pre-generated embedding for the text
+	"The foundation series by Isaac Asimov" using the "ada2-text-embedding" model
+	Uncomment the following text if you don't have access to a OpenAI model,
+	otherwise it is recommended to use the new "ai_generate_embedding" function
+	by using the code in the "Option 2" section below*/
 /*
 -- Enable external rest endpoint used by sp_invoke_external_rest_endpoint procedure
 exec sp_configure 'external rest endpoint enabled', 1
@@ -182,9 +189,10 @@ cteKNN as
 	from [dbo].[wikipedia_articles_embeddings]
 	order by distance, id	
 )
-select
+select	
 	k.id as id_knn,
 	a.id as id_ann,
+	k.title,
 	k.distance as distance_knn,
 	a.distance as distance_ann,
 	running_recall = cast(cast(count(a.id) over (order by k.distance) as float) 

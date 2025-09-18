@@ -42,7 +42,7 @@ GO
 
 -- Step 3: Create a vector index on the embedding column
 CREATE VECTOR INDEX vec_idx ON Articles(embedding)
-WITH (metric = 'cosine', type = 'diskann')
+WITH (METRIC = 'Cosine', TYPE = 'DiskANN')
 ON [PRIMARY];
 GO
 
@@ -55,11 +55,11 @@ SELECT
     s.distance
 FROM
     VECTOR_SEARCH(
-        table = Articles AS t,
-        column = embedding,
-        similar_to = @qv,
-        metric = 'cosine',
-        top_n = 3
+        TABLE = Articles AS t,
+        COLUMN = embedding,
+        SIMILAR_TO = @qv,
+        METRIC = 'Cosine',
+        TOP_N = 3
     ) AS s
 ORDER BY s.distance, t.title;
 GO
