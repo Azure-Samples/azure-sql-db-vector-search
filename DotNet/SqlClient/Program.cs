@@ -41,9 +41,9 @@ namespace SqlServer.NativeVectorSearch.Samples
         {
             Console.WriteLine("Hello, World!");
 
-            //await CreateAndInsertVectorsAsync();
+            await CreateAndInsertVectorsAsync();
 
-            //await CreateAndInsertEmbeddingAsync();
+            await CreateAndInsertEmbeddingAsync();
 
             await ReadVectorsAsync();
 
@@ -80,9 +80,9 @@ namespace SqlServer.NativeVectorSearch.Samples
                 // OBSOLETE:
                 // Supported for compatibility with the old driver Microsoft.Data.SqlClient: Version < 6.1.0.
                 // Insert vector as string. Note JSON array. 
-                //command.Parameters.AddWithValue("@Vector", "[7.12, -2.22, 3.33]");
+                // command.Parameters.AddWithValue("@Vector", "[7.12, -2.22, 3.33]");
                 // Insert vector as JSON string serialized from the float array.
-                //command.Parameters.AddWithValue("@Vector", JsonSerializer.Serialize(new float[] { 4.12f, 22.22f, -3.33f }));
+                // command.Parameters.AddWithValue("@Vector", JsonSerializer.Serialize(new float[] { 4.12f, 22.22f, -3.33f }));
 
                 connection.Open();
 
@@ -93,7 +93,7 @@ namespace SqlServer.NativeVectorSearch.Samples
         }
 
         /// <summary>
-        /// Demonstrates how to create a embedding vector from a string by using the embedding model and how to insert it into the table.
+        /// Demonstrates how to create a embedding vector and how to insert it into the table.
         /// </summary>
         /// <returns></returns>
         public static async Task CreateAndInsertEmbeddingAsync()
@@ -120,6 +120,7 @@ namespace SqlServer.NativeVectorSearch.Samples
                 // Embedding is inserted in the column '[Vector] VECTOR(1536)  NULL'
                 SqlCommand command = new SqlCommand($"INSERT INTO [test].[{_cTableName}] ([Vector], [Text]) VALUES ( @Vector, @Text)", connection);
 
+                // Demonstrates how to use the new SqlVector<T> type to insert the vector.
                 command.Parameters.AddWithValue("@Vector", new SqlVector<float>(embeddingVector.ToArray()));
 
                 //
@@ -153,7 +154,7 @@ namespace SqlServer.NativeVectorSearch.Samples
 
                     SqlCommand command1 = new SqlCommand(sql, connection);
 
-                    command1.Parameters.AddWithValue("@Vector", JsonSerializer.Serialize(CreateRandomVector()));
+                    command1.Parameters.AddWithValue("@Vector", new SqlVector<float>(CreateRandomVector()));
                     command1.Parameters.AddWithValue("@Text", i.ToString("D4"));
 
                     var result1 = await command1.ExecuteNonQueryAsync();
@@ -184,7 +185,7 @@ namespace SqlServer.NativeVectorSearch.Samples
                 connection.Open();
 
                 using (SqlDataReader reader = await command.ExecuteReaderAsync())
-                {  
+                {
                     while (await reader.ReadAsync())
                     {
                         //
@@ -243,7 +244,7 @@ namespace SqlServer.NativeVectorSearch.Samples
 
                 SqlCommand command = new SqlCommand($"Select TOP(100) Id, Text, VECTOR_DISTANCE('cosine', CAST(@Embedding AS Vector(3)), VectorShort) AS Distance FROM [test].[{_cTableName}]", connection);
 
-                command.Parameters.AddWithValue("@Embedding", JsonSerializer.Serialize(embedding));
+                command.Parameters.AddWithValue("@Embedding", new SqlVector<float>(embedding));
 
                 connection.Open();
 
@@ -393,7 +394,7 @@ namespace SqlServer.NativeVectorSearch.Samples
 
                 SqlCommand command = new SqlCommand($"Select TOP({howMany}) Id, Text, VECTOR_DISTANCE('cosine', CAST(@Embedding AS Vector(1536)), Vector) AS Distance FROM [test].[{_cTableName}] ORDER BY DISTANCE", connection);
 
-                command.Parameters.AddWithValue("@Embedding", JsonSerializer.Serialize(embeddingVector.ToArray()));
+                command.Parameters.AddWithValue("@Embedding", new SqlVector<float>(embeddingVector.ToArray()));
 
                 connection.Open();
 
@@ -451,7 +452,7 @@ namespace SqlServer.NativeVectorSearch.Samples
 
                     SqlCommand command = new SqlCommand($"Select TOP(10) Id, VECTOR_DISTANCE('cosine', CAST(@Embedding AS Vector(1536)), Vector) AS Distance FROM [test].[{_cTableName}] ORDER BY DISTANCE", connection);
 
-                    command.Parameters.AddWithValue("@Embedding", JsonSerializer.Serialize(vector));
+                    command.Parameters.AddWithValue("@Embedding", new SqlVector<float>(vector));
 
                     using (var reader = await command.ExecuteReaderAsync(System.Data.CommandBehavior.CloseConnection))
                     {
@@ -578,7 +579,7 @@ namespace SqlServer.NativeVectorSearch.Samples
                 SqlCommand command1 = new SqlCommand(sql, connection);
 
                 // Insert vector as string. Note JSON array.
-                command1.Parameters.AddWithValue("@Vector", JsonSerializer.Serialize(embeddingVector.ToArray()));
+                command1.Parameters.AddWithValue("@Vector", new SqlVector<float>(embeddingVector.ToArray()));
                 command1.Parameters.AddWithValue("@Text", text);
 
                 connection.Open();
@@ -651,7 +652,6 @@ namespace SqlServer.NativeVectorSearch.Samples
             Console.WriteLine("----------------------------------------------");
 
             Console.WriteLine($"j: {jsonResults.Average()} s: {stringResults.Average()}");
-
         }
 
         private static string ToVectorJsonString(float[] embedding)
