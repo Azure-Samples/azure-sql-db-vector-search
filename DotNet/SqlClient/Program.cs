@@ -41,10 +41,14 @@ namespace SqlServer.NativeVectorSearch.Samples
         {
             Console.WriteLine("Hello, World!");
 
-            await CreateAndInsertVectorsAsync();
-            await CreateAndInsertEmbeddingAsync();
+            //await CreateAndInsertVectorsAsync();
+
+            //await CreateAndInsertEmbeddingAsync();
+
             await ReadVectorsAsync();
+
             await FindSimilarAsync();
+
             await GenerateTestDocumentsAsync();
 
             await ClassifyDocumentsAsync();
@@ -67,14 +71,14 @@ namespace SqlServer.NativeVectorSearch.Samples
                 SqlCommand command = new SqlCommand(sql, connection);
 
                 // Demonstrates how to use the new SqlVector<T> type to insert the vector.
-                var prm = command.Parameters.AddWithValue("@Vector", new SqlVector<float>(new float[] { 7.01f, 7.02f, -7.03f }));
+                command.Parameters.AddWithValue("@Vector", new SqlVector<float>(new float[] { 7.01f, 7.02f, -7.03f }));
 
                 // Alternative way how to add the vector parameter.
                 //var prm = command.Parameters.Add("@Vector", SqlDbTypeExtensions.Vector);
                 //prm.Value= new SqlVector<float>( new float[] { 7.01f, 7.02f, -7.03f });
 
-                // OBSOLETE:.
-                // Used for compatibility with the old driver Microsoft.Data.SqlClient: Version < 6.1.0.
+                // OBSOLETE:
+                // Supported for compatibility with the old driver Microsoft.Data.SqlClient: Version < 6.1.0.
                 // Insert vector as string. Note JSON array. 
                 //command.Parameters.AddWithValue("@Vector", "[7.12, -2.22, 3.33]");
                 // Insert vector as JSON string serialized from the float array.
@@ -99,7 +103,7 @@ namespace SqlServer.NativeVectorSearch.Samples
             // The text to be converted to a vector.
             string text = "Native Vector Search for SQL Server";
 
-            // Generate the embedding vector.
+            // Generate the embedding vector by using OpenAI SDK
             var res = await client.GenerateEmbeddingsAsync(new List<string>() { text });
 
             OpenAIEmbedding embedding = res.Value.First();
@@ -116,7 +120,12 @@ namespace SqlServer.NativeVectorSearch.Samples
                 // Embedding is inserted in the column '[Vector] VECTOR(1536)  NULL'
                 SqlCommand command = new SqlCommand($"INSERT INTO [test].[{_cTableName}] ([Vector], [Text]) VALUES ( @Vector, @Text)", connection);
 
-                command.Parameters.AddWithValue("@Vector", JsonSerializer.Serialize(embeddingVector.ToArray()));
+                command.Parameters.AddWithValue("@Vector", new SqlVector<float>(embeddingVector.ToArray()));
+
+                //
+                // OBSOLETE: Supported for compatibility with the old driver Microsoft.Data.SqlClient: Version < 6.1.0.
+                //command.Parameters.AddWithValue("@Vector", JsonSerializer.Serialize(embeddingVector.ToArray()));
+
                 command.Parameters.AddWithValue("@Text", text);
 
                 connection.Open();
@@ -154,9 +163,11 @@ namespace SqlServer.NativeVectorSearch.Samples
             }
         }
 
-   
+
         /// <summary>
         /// Demonstrates how to read vectors from the table.
+        /// Please nite the code is not optimized. It is for demonstration purposes only to understand
+        /// how to deal with the vector type.
         /// </summary>
         /// <returns></returns>
 
@@ -173,13 +184,31 @@ namespace SqlServer.NativeVectorSearch.Samples
                 connection.Open();
 
                 using (SqlDataReader reader = await command.ExecuteReaderAsync())
-                {
+                {  
                     while (await reader.ReadAsync())
                     {
+                        //
+                        // Demonstrates how to read the vector as a native type.
+                        var vectorShort = reader.IsDBNull(reader.GetOrdinal("VectorShort")) ?
+                          SqlVector<float>.CreateNull(3) :
+                          reader.GetSqlVector<float>(reader.GetOrdinal("VectorShort"));
+
+                        var vectorEmbedding = reader.IsDBNull(reader.GetOrdinal("Vector")) ?
+                            SqlVector<float>.CreateNull(1536) :
+                            reader.GetSqlVector<float>(reader.GetOrdinal("Vector"));
+
+                        //
+                        // Demonstrates ow to get a float array from the vector type.
+                        float[] arrShort = vectorShort.Memory.ToArray();
+                        float[] arrEmbedding = vectorEmbedding.Memory.ToArray();
+
                         (long Id, string VectorShort, string Vector, string Text) row = new(
                             reader.GetInt32(reader.GetOrdinal("Id")),
-                            reader.IsDBNull(reader.GetOrdinal("VectorShort")) ? "-" : reader.GetString(reader.GetOrdinal("VectorShort")),
-                            reader.IsDBNull(reader.GetOrdinal("Vector")) ? "-" : reader.GetString(reader.GetOrdinal("Vector")).Substring(0, 20) + "...",
+                            string.Join(", ", arrShort),
+                            string.Join(", ", arrEmbedding).Substring(0, Math.Min(75, arrEmbedding.Length)) + " ... ",
+                            // OBSOLETE: Supported for compatibility with the old driver Microsoft.Data.SqlClient: Version < 6.1.0.
+                            //reader.IsDBNull(reader.GetOrdinal("VectorShort")) ? "-" : reader.GetString(reader.GetOrdinal("VectorShort")),
+                            //reader.IsDBNull(reader.GetOrdinal("Vector")) ? "-" : reader.GetString(reader.GetOrdinal("Vector")).Substring(0, 20) + "...",
                             reader.IsDBNull(reader.GetOrdinal("Text")) ? "-" : reader.GetString(reader.GetOrdinal("Text"))
                         );
 
@@ -192,7 +221,7 @@ namespace SqlServer.NativeVectorSearch.Samples
 
             foreach (var row in rows)
             {
-                Console.WriteLine($"{row.Id}, {row.Vector}, {row.Text}");
+                Console.WriteLine($"{row.Id}, {row.VectorShort}, {row.Vector}, {row.Text}");
             }
         }
 
@@ -290,7 +319,7 @@ namespace SqlServer.NativeVectorSearch.Samples
         /// </summary>
         /// <returns></returns>
         public static async Task ClassifyDocumentsAsync()
-        {   
+        {
             var invoicesEng = await GetMatching(20, "invoice total item");
 
             var invoiceGER = await GetMatching(20, "rechnung item gesammt");
