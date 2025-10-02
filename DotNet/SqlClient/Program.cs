@@ -1,9 +1,12 @@
-﻿using System.Diagnostics;
-using System.Globalization;
-using System.Text.Json;
-using System.Text;
+﻿using Microsoft.Data;
 using Microsoft.Data.SqlClient;
+using Microsoft.Data.SqlTypes;
 using OpenAI.Embeddings;
+using System.Data;
+using System.Diagnostics;
+using System.Globalization;
+using System.Text;
+using System.Text.Json;
 
 namespace SqlServer.NativeVectorSearch.Samples
 {
@@ -38,7 +41,7 @@ namespace SqlServer.NativeVectorSearch.Samples
         {
             Console.WriteLine("Hello, World!");
 
-            //await CreateAndInsertVectorsAsync();
+            await CreateAndInsertVectorsAsync();
             await CreateAndInsertEmbeddingAsync();
             await ReadVectorsAsync();
             await FindSimilarAsync();
@@ -61,21 +64,25 @@ namespace SqlServer.NativeVectorSearch.Samples
                 // Vector is inserted in the column '[VectorShort] VECTOR(3)  NULL'
                 string sql = $"INSERT INTO [test].[{_cTableName}] ([VectorShort]) VALUES (@Vector)";
 
-                SqlCommand command1 = new SqlCommand(sql, connection);
+                SqlCommand command = new SqlCommand(sql, connection);
 
-                // Insert vector as string. Note JSON array.
-                command1.Parameters.AddWithValue("@Vector", "[7.12, -2.22, 3.33]");
+                // Demonstrates how to use the new SqlVector<T> type to insert the vector.
+                var prm = command.Parameters.AddWithValue("@Vector", new SqlVector<float>(new float[] { 7.01f, 7.02f, -7.03f }));
 
-                SqlCommand command2 = new SqlCommand(sql, connection);
+                // Alternative way how to add the vector parameter.
+                //var prm = command.Parameters.Add("@Vector", SqlDbTypeExtensions.Vector);
+                //prm.Value= new SqlVector<float>( new float[] { 7.01f, 7.02f, -7.03f });
 
+                // OBSOLETE:.
+                // Used for compatibility with the old driver Microsoft.Data.SqlClient: Version < 6.1.0.
+                // Insert vector as string. Note JSON array. 
+                //command.Parameters.AddWithValue("@Vector", "[7.12, -2.22, 3.33]");
                 // Insert vector as JSON string serialized from the float array.
-                command2.Parameters.AddWithValue("@Vector", JsonSerializer.Serialize(new float[] { 4.12f, 22.22f, -3.33f }));
+                //command.Parameters.AddWithValue("@Vector", JsonSerializer.Serialize(new float[] { 4.12f, 22.22f, -3.33f }));
 
                 connection.Open();
 
-                var result1 = await command1.ExecuteNonQueryAsync();
-
-                var result2 = await command2.ExecuteNonQueryAsync();
+                var result = await command.ExecuteNonQueryAsync();
 
                 connection.Close();
             }
