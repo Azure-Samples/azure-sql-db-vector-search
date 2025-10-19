@@ -242,7 +242,7 @@ namespace SqlServer.NativeVectorSearch.Samples
             {
                 var id = Guid.NewGuid().ToString();
 
-                SqlCommand command = new SqlCommand($"Select TOP(100) Id, Text, VECTOR_DISTANCE('cosine', CAST(@Embedding AS Vector(3)), VectorShort) AS Distance FROM [test].[{_cTableName}]", connection);
+                SqlCommand command = new SqlCommand($"Select TOP(100) Id, Text, VECTOR_DISTANCE('cosine', @Embedding, VectorShort) AS Distance FROM [test].[{_cTableName}]", connection);
 
                 command.Parameters.AddWithValue("@Embedding", new SqlVector<float>(embedding));
 
@@ -392,7 +392,7 @@ namespace SqlServer.NativeVectorSearch.Samples
             {
                 var id = Guid.NewGuid().ToString();
 
-                SqlCommand command = new SqlCommand($"Select TOP({howMany}) Id, Text, VECTOR_DISTANCE('cosine', CAST(@Embedding AS Vector(1536)), Vector) AS Distance FROM [test].[{_cTableName}] ORDER BY DISTANCE", connection);
+                SqlCommand command = new SqlCommand($"Select TOP({howMany}) Id, Text, VECTOR_DISTANCE('cosine', @Embedding, Vector) AS Distance FROM [test].[{_cTableName}] ORDER BY DISTANCE", connection);
 
                 command.Parameters.AddWithValue("@Embedding", new SqlVector<float>(embeddingVector.ToArray()));
 
@@ -450,7 +450,7 @@ namespace SqlServer.NativeVectorSearch.Samples
                 {
                     connection.Open();
 
-                    SqlCommand command = new SqlCommand($"Select TOP(10) Id, VECTOR_DISTANCE('cosine', CAST(@Embedding AS Vector(1536)), Vector) AS Distance FROM [test].[{_cTableName}] ORDER BY DISTANCE", connection);
+                    SqlCommand command = new SqlCommand($"Select TOP(10) Id, VECTOR_DISTANCE('cosine', @Embedding AS Vector(1536), Vector) AS Distance FROM [test].[{_cTableName}] ORDER BY DISTANCE", connection);
 
                     command.Parameters.AddWithValue("@Embedding", new SqlVector<float>(vector));
 
