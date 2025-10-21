@@ -9,7 +9,14 @@ examples for different use cases, that demonstrate how to work with vectors. Fol
 4. Find Similar vectors
 5. Document Classification
 
-To execute the samples, ensure you configure the following environment variables in the `louchSettings.json` file: `ApiKey`, `SqlConnStr` and , `EmbeddingModelName`
+## Configuration
+
+The samples support both **OpenAI** and **Azure OpenAI** embedding services. You can configure the samples using either:
+
+- Environment variables in the `launchSettings.json` file, or
+- A `.env` file in the project root
+
+### Using OpenAI
 
 ~~~json
 {
@@ -17,26 +24,61 @@ To execute the samples, ensure you configure the following environment variables
     "SqlServer.NativeVectorSearch.Samples": {
       "commandName": "Project",
       "environmentVariables": {
-        "ApiKey": "***",
-        "EmbeddingModelName": "***",
-        "SqlConnStr": "***"
+        "UseAzureOpenAI": "false",
+        "ApiKey": "sk-your-openai-api-key",
+        "EmbeddingModelName": "text-embedding-3-small",
+        "SqlConnStr": "Data Source=your-server;Initial Catalog=your-db;..."
       }
     }
   }
 }
 ~~~
 
-You also need to create the following table (Note: the solution uses the scheme 'test'):   
+### Using Azure OpenAI
 
-```sql
+~~~json
+{
+  "profiles": {
+    "SqlServer.NativeVectorSearch.Samples": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "UseAzureOpenAI": "true",
+        "AzureOpenAIEndpoint": "https://your-resource.openai.azure.com/",
+        "AzureOpenAIKey": "your-azure-openai-key",
+        "EmbeddingModelName": "text-embedding-3-small",
+        "SqlConnStr": "Data Source=your-server;Initial Catalog=your-db;..."
+      }
+    }
+  }
+}
+~~~
+
+### Using .env file
+
+Alternatively, you can create a `.env` file in the project root. See `.env.example` for a template.
+
+### Required Environment Variables
+
+| Variable | Required For | Description |
+|----------|-------------|-------------|
+| `SqlConnStr` | All | SQL Server connection string |
+| `EmbeddingModelName` | All | Name of the embedding model (e.g., text-embedding-3-small) |
+| `UseAzureOpenAI` | All | Set to "true" for Azure OpenAI, "false" or omit for OpenAI (default: false) |
+| `ApiKey` | OpenAI | Your OpenAI API key |
+| `AzureOpenAIEndpoint` | Azure OpenAI | Your Azure OpenAI endpoint |
+| `AzureOpenAIKey` | Azure OpenAI | Your Azure OpenAI API key |
+
+You also need to create the following table (Note: the solution uses the schema 'test'):
+
+~~~sql
 CREATE TABLE test.Vectors
 (
-    [Id] INT IDENTITY(1,1) NOT NULL,
+    [Id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
     [Text] NVARCHAR(MAX) NULL,
     [VectorShort] VECTOR(3)  NULL,
     [Vector] VECTOR(1536)  NULL
 ) ON [PRIMARY];
-```
+~~~
 
 ## 1. Create and insert vectors in the SQL table
 
@@ -98,7 +140,7 @@ The sample provides a step-by-step approach, highlighting how to utilize the emb
          var id = Guid.NewGuid().ToString();
 
          // Embedding is inserted in the column '[Vector] VECTOR(1536)  NULL'
-         SqlCommand command = new SqlCommand($"INSERT INTO [test].[Vectors] ([Vector], [Text]) VALUES ( @Vector, @Text)", connection);
+         SqlCommand command = new SqlCommand($"INSERT INTO [test].[Vectors] ([Vector], [Text]) VALUES (@Vector, @Text)", connection);
 
          command.Parameters.AddWithValue("@Vector", JsonSerializer.Serialize(embeddingVector.ToArray()));
          command.Parameters.AddWithValue("@Text", text);

@@ -2,57 +2,97 @@
 using Microsoft.Data.SqlClient;
 using Microsoft.Data.SqlTypes;
 using OpenAI.Embeddings;
+using Azure.AI.OpenAI;
+using Azure;
 using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using DotNetEnv;
+using System.Security.Cryptography;
 
 namespace SqlServer.NativeVectorSearch.Samples
 {
     /// <summary>
-    /// To run the samples, you need to set the following environment variables: ApiKey, SqlConnStr, EmbeddingModelName.
-    /// You also need to create a table in the database with the following schema:   
-    ///      CREATE TABLE test.Vectors
-    ///        (
-    ///          [Id] INT IDENTITY(1,1) NOT NULL,
-    ///          [Text] NVARCHAR(MAX) NULL,
-    ///          [VectorShort] VECTOR(3)  NULL,
-    ///          [Vector] VECTOR(1536)  NULL
-    ///        ) ON [PRIMARY];
+    /// To run the samples, you need to set the following environment variables:
+    /// - SqlConnStr: SQL Server connection string
+    /// - EmbeddingModelName: Name of the embedding model
+    /// - UseAzureOpenAI: Set to "true" to use Azure OpenAI, "false" or omit for OpenAI (default: false)
+    /// 
+    /// For OpenAI:
+    /// - ApiKey: Your OpenAI API key
+    /// 
+    /// For Azure OpenAI:
+    /// - AzureOpenAIEndpoint: Your Azure OpenAI endpoint (e.g., https://your-resource.openai.azure.com/)
+    /// - AzureOpenAIKey: Your Azure OpenAI API key
+    /// 
+    /// You also need to create a table in the database with the following schema:
+    ///
+    /// CREATE SCHEMA test AUTHORIZATION dbo;
+    /// DROP TABLE IF EXISTS test.Vectors;
+    /// CREATE TABLE test.Vectors
+    /// (
+    ///     [Id] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    ///     [Text] NVARCHAR(MAX) NULL,
+    ///     [VectorShort] VECTOR(3)  NULL,
+    ///     [Vector] VECTOR(1536)  NULL
+    /// ) ON [PRIMARY];
     /// </summary>
     internal class Program
     {
         private static Random _rnd = new Random();
         private static string _cConnStr;
         private static string _cEmbeddingModel;
-        private static string _cApiKey;
-        private static string _cTableName = "Vectors2";
+        private static string? _cApiKey;
+        private static bool _cUseAzureOpenAI;
+        private static string? _cAzureOpenAIEndpoint;
+        private static string? _cAzureOpenAIKey;
+        private static string _cTableName = "Vectors";
 
         static Program()
         {
+            Env.Load();
+
             // Note, you can use launchSettings to set the required environment variables.
-            _cApiKey = Environment.GetEnvironmentVariable("ApiKey")!;
             _cConnStr = Environment.GetEnvironmentVariable("SqlConnStr")!;
             _cEmbeddingModel = Environment.GetEnvironmentVariable("EmbeddingModelName")!;
+            _cUseAzureOpenAI = bool.TryParse(Environment.GetEnvironmentVariable("UseAzureOpenAI"), out var useAzure) && useAzure;
+
+            if (_cUseAzureOpenAI)
+            {
+                _cAzureOpenAIEndpoint = Environment.GetEnvironmentVariable("AzureOpenAIEndpoint")!;
+                _cAzureOpenAIKey = Environment.GetEnvironmentVariable("AzureOpenAIKey")!;
+                Console.WriteLine($"Using Azure OpenAI with endpoint: {_cAzureOpenAIEndpoint}");
+            }
+            else
+            {
+                _cApiKey = Environment.GetEnvironmentVariable("ApiKey")!;
+                Console.WriteLine("Using OpenAI");
+            }
         }
 
         static async Task Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
-
+            Console.WriteLine("Running CreateAndInsertVectorsAsync()...");
             await CreateAndInsertVectorsAsync();
 
+            Console.WriteLine("Running CreateAndInsertEmbeddingAsync()...");
             await CreateAndInsertEmbeddingAsync();
 
+            Console.WriteLine("Running ReadVectorsAsync()...");
             await ReadVectorsAsync();
 
+            Console.WriteLine("Running FindSimilarAsync()...");
             await FindSimilarAsync();
 
+            Console.WriteLine("Running GenerateTestDocumentsAsync()...");
             await GenerateTestDocumentsAsync();
 
+            Console.WriteLine("Running ClassifyDocumentsAsync()...");
             await ClassifyDocumentsAsync();
 
+            Console.WriteLine("Running GenerateRandomVectorsAsync()...");
             await GenerateRandomVectorsAsync();
         }
 
@@ -98,7 +138,7 @@ namespace SqlServer.NativeVectorSearch.Samples
         /// <returns></returns>
         public static async Task CreateAndInsertEmbeddingAsync()
         {
-            EmbeddingClient client = new(_cEmbeddingModel, _cApiKey);
+            EmbeddingClient client = CreateEmbeddingClient();
 
             // The text to be converted to a vector.
             string text = "Native Vector Search for SQL Server";
@@ -144,6 +184,7 @@ namespace SqlServer.NativeVectorSearch.Samples
         /// <returns></returns>
         public static async Task GenerateRandomVectorsAsync(int howMany = 10000)
         {
+            // Just for testing, use SqlBulkCopy for better performance.            
             using (SqlConnection connection = new SqlConnection(_cConnStr))
             {
                 connection.Open();
@@ -382,7 +423,7 @@ namespace SqlServer.NativeVectorSearch.Samples
         {
             List<(long Id, double Distance, string Text)> matchingRows = new();
 
-            EmbeddingClient client = new(_cEmbeddingModel, _cApiKey);
+            EmbeddingClient client = CreateEmbeddingClient();
 
             var res = await client.GenerateEmbeddingsAsync(new List<string>() { text });
 
@@ -466,8 +507,6 @@ namespace SqlServer.NativeVectorSearch.Samples
             }
         }
 
-
-
         /// <summary>
         /// Creates the random vector in 1536 dimensions space.
         /// </summary>
@@ -489,7 +528,6 @@ namespace SqlServer.NativeVectorSearch.Samples
         /// After generating the documents, the method uses the model to create an embedding vector, which
         /// will be inserted into the database along with the document text.
         /// </summary>
-
         public static async Task GenerateTestDocumentsAsync()
         {
             string[] customers = { "John Doe", "Jane Smith", "Alice Johnson", "Bob Lee", "Emma Davis", "Chris White",
@@ -564,9 +602,32 @@ namespace SqlServer.NativeVectorSearch.Samples
                     ";
         }
 
+        /// <summary>
+        /// Creates an EmbeddingClient based on the configuration (OpenAI or Azure OpenAI).
+        /// </summary>
+        /// <returns>EmbeddingClient instance</returns>
+        private static EmbeddingClient CreateEmbeddingClient()
+        {
+            if (_cUseAzureOpenAI)
+            {
+                if (string.IsNullOrEmpty(_cAzureOpenAIEndpoint) || string.IsNullOrEmpty(_cAzureOpenAIKey))
+                    throw new InvalidOperationException("Azure OpenAI endpoint and key must be configured when UseAzureOpenAI is true.");
+                
+                var azureClient = new AzureOpenAIClient(new Uri(_cAzureOpenAIEndpoint), new AzureKeyCredential(_cAzureOpenAIKey));
+                return azureClient.GetEmbeddingClient(_cEmbeddingModel);
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(_cApiKey))
+                    throw new InvalidOperationException("OpenAI API key must be configured when UseAzureOpenAI is false.");
+                
+                return new EmbeddingClient(_cEmbeddingModel, _cApiKey);
+            }
+        }
+
         private static async Task InsertVector(string text)
         {
-            EmbeddingClient client = new(_cEmbeddingModel, _cApiKey);
+            EmbeddingClient client = CreateEmbeddingClient();
 
             var res = await client.GenerateEmbeddingsAsync(new List<string>() { text });
 
@@ -593,7 +654,6 @@ namespace SqlServer.NativeVectorSearch.Samples
 
         #region Vector Serialization
 
-
         /// <summary>
         /// This method is used to test the performance of the vector serialization by using different approaches.
         /// Dimensions:  Avg JSON   Avg Str
@@ -602,9 +662,9 @@ namespace SqlServer.NativeVectorSearch.Samples
         /// </summary>
         public void VectorSerialization_Tests()
         {
-            Random rnd = new Random();
+            Random rnd = new();
 
-            List<float> vector = new List<float>();
+            List<float> vector = new();
 
             for (int i = 0; i < 1536; i++)
             {
@@ -615,12 +675,12 @@ namespace SqlServer.NativeVectorSearch.Samples
 
             var vectorArray = vector.ToArray();
 
-            List<long> jsonResults = new List<long>();
-            List<long> stringResults = new List<long>();
+            List<long> jsonResults = [];
+            List<long> stringResults = [];
 
             for (int k = 0; k < 100; k++)
             {
-                Stopwatch swJson = new Stopwatch();
+                Stopwatch swJson = new();
                 swJson.Start();
 
                 for (int i = 0; i < count; i++)
@@ -630,7 +690,7 @@ namespace SqlServer.NativeVectorSearch.Samples
 
                 swJson.Stop();
 
-                Stopwatch swString = new Stopwatch();
+                Stopwatch swString = new();
                 swString.Start();
 
                 for (int i = 0; i < count; i++)
@@ -658,9 +718,10 @@ namespace SqlServer.NativeVectorSearch.Samples
         {
             return JsonSerializer.Serialize(embedding);
         }
+
         private static string ToVectorString(float[] embedding)
         {
-            StringBuilder sb = new StringBuilder("[");
+            StringBuilder sb = new("[");
 
             bool isFirst = true;
 
@@ -668,7 +729,7 @@ namespace SqlServer.NativeVectorSearch.Samples
             {
                 if (!isFirst)
                 {
-                    sb.Append(",");
+                    _ = sb.Append(',');
                 }
                 else
                     isFirst = false;
@@ -676,7 +737,7 @@ namespace SqlServer.NativeVectorSearch.Samples
                 sb.Append(value.ToString(CultureInfo.InvariantCulture));
             }
 
-            sb.Append("]");
+            sb.Append(']');
 
             return sb.ToString();
 
