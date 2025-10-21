@@ -84,163 +84,27 @@ CREATE TABLE test.Vectors
 
 This example (CreateAndInsertVectorsAsync) provides a demonstration of creating vectors and inserting them into a database table. For clarity and simplicity, the example inserts two 3-dimensional vectors.
 
-~~~csharp
-  public static async Task CreateAndInsertVectorsAsync()
-  {
-      using (SqlConnection connection = new SqlConnection(_cConnStr))
-      {
-          // Vector is inserted in the column '[VectorShort] VECTOR(3)  NULL'
-          string sql = $"INSERT INTO [test].[Vectors] ([VectorShort]) VALUES (@Vector)";
-
-          SqlCommand command1 = new SqlCommand(sql, connection);
-
-          // Insert vector as string. Note JSON array.
-          command1.Parameters.AddWithValue("@Vector", "[1.12, 2.22, 3.33]");
-
-          SqlCommand command2 = new SqlCommand(sql, connection);
-
-          // Insert vector as JSON string serialized from the float array.
-          command2.Parameters.AddWithValue("@Vector", JsonSerializer.Serialize(new float[] { 1.12f, 2.22f, 3.33f }));
-
-          connection.Open();
-
-          var result1 = await command1.ExecuteNonQueryAsync();
-
-          var result2 = await command2.ExecuteNonQueryAsync();
-
-          connection.Close();
-      }
-~~~
+- `CreateAndInsertVectorsAsync()`
 
 ## 2. Create and insert embeddings in the SQL table
 
 This example (CreateAndInsertEmbeddingAsync) illustrates the process of generating an embedding vector from a string using a pre-defined embedding model and subsequently inserting the resulting vector into a database table.
 The sample provides a step-by-step approach, highlighting how to utilize the embedding model to transform textual input into a high-dimensional vector representation. It further details the process of storing this vector efficiently within a table, ensuring compatibility with advanced search and semantic matching capabilities.
 
-~~~csharp
- public static async Task CreateAndInsertEmbeddingAsync()
- {
-     EmbeddingClient client = new(_cEmbeddingModel, _cApiKey);
-
-     // The text to be converted to a vector.
-     string text = "Native Vector Search for SQL Server";
-
-     // Generate the embedding vector.
-     var res = await client.GenerateEmbeddingsAsync(new List<string>() { text });
-
-     OpenAIEmbedding embedding = res.Value.First();
-
-     ReadOnlyMemory<float> embeddingVector = embedding.ToFloats();
-
-     //
-     // Following code demonstrates how to insert the vector into the column Vector:
-     // [Vector] VECTOR(1536)  NULL
-     using (SqlConnection connection = new SqlConnection(_cConnStr))
-     {
-         var id = Guid.NewGuid().ToString();
-
-         // Embedding is inserted in the column '[Vector] VECTOR(1536)  NULL'
-         SqlCommand command = new SqlCommand($"INSERT INTO [test].[Vectors] ([Vector], [Text]) VALUES (@Vector, @Text)", connection);
-
-         command.Parameters.AddWithValue("@Vector", JsonSerializer.Serialize(embeddingVector.ToArray()));
-         command.Parameters.AddWithValue("@Text", text);
-
-         connection.Open();
-
-         var result = await command.ExecuteNonQueryAsync();
-
-         connection.Close();
-     }
- }
-~~~
+- `CreateAndInsertEmbeddingAsync()`
 
 ## 3. Reading vectors
 
 This example (ReadVectorsAsync) demonstrates the process of retrieving vectors stored in a database table. 
 It provides a step-by-step guide on how to read rows that contain vector columns. The example focuses on best practices for handling vector data, including correct casting.
 
-~~~csharp
- public static async Task ReadVectorsAsync()
- {
-     List<(long Id, string VectorShort, string Vector, string Text)> rows = new();
-
-     using (SqlConnection connection = new SqlConnection(_cConnStr))
-     {
-         var id = Guid.NewGuid().ToString();
-
-         SqlCommand command = new SqlCommand($"Select TOP(100) * FROM [test].[Vectors]", connection);
-
-         connection.Open();
-
-         using (SqlDataReader reader = await command.ExecuteReaderAsync())
-         {
-             while (await reader.ReadAsync())
-             {
-                 (long Id, string VectorShort, string Vector, string Text) row = new(
-                     reader.GetInt32(reader.GetOrdinal("Id")),
-                     reader.IsDBNull(reader.GetOrdinal("VectorShort")) ? "-" : reader.GetString(reader.GetOrdinal("VectorShort")),
-                     reader.IsDBNull(reader.GetOrdinal("Vector")) ? "-" : reader.GetString(reader.GetOrdinal("Vector")).Substring(0, 20) + "...",
-                     reader.IsDBNull(reader.GetOrdinal("Text")) ? "-" : reader.GetString(reader.GetOrdinal("Text"))
-                 );
-
-                 rows.Add(row);
-             }
-         }
-
-         connection.Close();
-     }
-
-     foreach (var row in rows)
-     {
-         Console.WriteLine($"{row.Id}, {row.Vector}, {row.Text}");
-     }
- }
-~~~
+- `ReadVectorsAsync()`
 
 ## 4. Find Similar Vectors
 
 The example (FindSimilarAsync) demonstrates how to calculate the distance between vectors and how to look up the top best-matching vectors.
 
-~~~csharp
-  public static async Task FindSimilarAsync()
-  {
-      List<(long Id, double Distance, string Text)> rows = new();
-
-      var embedding = new float[] { 1.12f, 2.22f, 3.33f };
-
-      using (SqlConnection connection = new SqlConnection(_cConnStr))
-      {
-          var id = Guid.NewGuid().ToString();
-
-          SqlCommand command = new SqlCommand($"Select TOP(100) Id, Text, VECTOR_DISTANCE('cosine', CAST(@Embedding AS Vector(3)), VectorShort) AS Distance FROM [test].[Vectors]", connection);
-
-          command.Parameters.AddWithValue("@Embedding", JsonSerializer.Serialize(embedding));
-
-          connection.Open();
-
-          using (SqlDataReader reader = await command.ExecuteReaderAsync())
-          {
-              while (await reader.ReadAsync())
-              {
-                  (long Id, double distance, string Text) row = new(
-                      reader.GetInt32(reader.GetOrdinal("Id")),
-                      reader.IsDBNull(reader.GetOrdinal("Distance")) ? -999 : reader.GetDouble(reader.GetOrdinal("Distance")),
-                      reader.IsDBNull(reader.GetOrdinal("Text")) ? "-" : reader.GetString(reader.GetOrdinal("Text"))
-                  );
-
-                  rows.Add(row);
-              }
-          }
-
-          connection.Close();
-      }
-
-      foreach (var row in rows)
-      {
-          Console.WriteLine($"{row.Id}, {row.Distance}, {row.Text}");
-      }
-  }
-~~~
+- `FindSimilarAsync()`
 
 ## 5. Document Classification
 
