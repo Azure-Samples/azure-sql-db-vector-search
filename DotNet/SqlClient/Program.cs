@@ -158,7 +158,7 @@ namespace SqlServer.NativeVectorSearch.Samples
                 var id = Guid.NewGuid().ToString();
 
                 // Embedding is inserted in the column '[Vector] VECTOR(1536)  NULL'
-                SqlCommand command = new SqlCommand($"INSERT INTO [test].[{_cTableName}] ([Vector], [Text]) VALUES ( @Vector, @Text)", connection);
+                SqlCommand command = new SqlCommand($"INSERT INTO [test].[{_cTableName}] ([Vector], [Text]) VALUES (@Vector, @Text)", connection);
 
                 // Demonstrates how to use the new SqlVector<T> type to insert the vector.
                 command.Parameters.AddWithValue("@Vector", new SqlVector<float>(embeddingVector.ToArray()));
