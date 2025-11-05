@@ -46,7 +46,7 @@ with st.sidebar:
     AZUREDOCINTELLIGENCE_API_KEY = st.text_input('Azure Document Intelligence API Key', type='password', key='docint_key')
     AZOPENAI_ENDPOINT = st.text_input('Azure OpenAI Endpoint', type='default', key='openai_endpoint')
     AZOPENAI_API_KEY = st.text_input('Azure OpenAI API Key', type='password', key='openai_key') 
-    st.text_input("Embedding Model Deployment Name", value="text-embedding-3-small", key="embedding_model")
+    st.text_input("Embedding Model Deployment Name", value="text-embedding-ada-002", key="embedding_model")
     st.text_input("Chat Completion Model Name", value="gpt-4.1", key="gpt-4.1")
 
 
@@ -70,7 +70,7 @@ def get_document_analysis_client():
 # Azure OpenAI setup
 def get_openai_embedding_url():
     endpoint = get_config('AZOPENAI_ENDPOINT')
-    deployment = "text-embedding-3-small"
+    deployment = "text-embedding-ada-002"
     return f"{endpoint}openai/deployments/{deployment}/embeddings?api-version=2023-05-15"
 
 def get_openai_key():
@@ -350,7 +350,7 @@ with st.expander("**What are Embeddings ?**"):
                 - After extracting and chunking the text from PDF resumes, we will generate embeddings for each chunk. These embeddings are **numerical representations** of the text that capture its semantic meaning. 
                 By creating embeddings for the text chunks, we can perform advanced similarity searches and enhance language model generation. 
                 - We will use the Azure OpenAI API to generate these embeddings. The `get_embedding` function defined below takes a piece of text as input 
-                and returns its embedding using the `text-embedding-small` model
+                and returns its embedding using the `text-embedding-ada-002` model
                 """)
 
 if st.session_state['df'] is not None:
