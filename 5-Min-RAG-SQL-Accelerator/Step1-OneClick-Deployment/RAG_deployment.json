@@ -85,10 +85,10 @@
             }
         },
         "embedding_model": {
-            "defaultValue": "text-embedding-3-small",
+            "defaultValue": "text-embedding-ada-002",
             "type": "String",
             "metadata": {
-                "description": "Name of the Azure OpenAI chat model to be deployed for generating conversational responses. Recommended to keep same as default value."
+                "description": "Name of the Azure OpenAI chat model to be deployed for generating embeddings. Recommended to keep same as default value."
             }
         }
     },
