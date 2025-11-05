@@ -1,89 +1,81 @@
 import streamlit as st
 import os
-import re
 import pandas as pd
-import tiktoken
-import requests
-import numpy as np
 import json
-from azure.ai.formrecognizer import DocumentAnalysisClient
-from azure.core.credentials import AzureKeyCredential
+import requests
+from dotenv import load_dotenv
 from openai import AzureOpenAI
 import pyodbc
-import struct
 from azure.identity import DefaultAzureCredential
-from azure.identity import InteractiveBrowserCredential
+import struct
 
 # Adjust the layout to make the main window wide
 st.set_page_config(layout="wide", page_title="RAG with Azure SQL and OpenAI")
 
-# Custom CSS to style the Streamlit app
+# Load environment variables
+load_dotenv()
+
+# Update custom CSS for styling expander elements
 st.markdown(
     """
     <style>
-    .main {
-        overflow-y: auto !important;
-    }
     [data-testid="stExpander"] {
-        background-color: #f4f1ff;
+        background-color: #f4f1ff; 
         border-radius: 5px;
         color: #000;
     }
-    /* Remove any overflow: hidden or similar rules that could break scrolling */
     </style>
     """,
     unsafe_allow_html=True
 )
 
-# --- Streamlit Sidebar for Configuration ---
+# Move configuration requirements to a collapsible sidebar
 with st.sidebar:
-    st.subheader('🔒 Configuration Strings (Session Only)')
-    st.markdown('Enter your Azure SQL / DocIntelligence / OpenAI credentials. These are only stored for this session and never saved.')
-    SQL_CONNECTION_STRING = st.text_input('SQL Connection String', placeholder="Enter your Azure SQL connection string", type='default', key='sql_conn', 
-                                          help="ODBC Connection string needs to be used. Do update the password parameter in the string with your password.")
-    ENTRA_CONNECTION_STRING = st.text_input("Azure Entra ID Connection String (Optional)", placeholder="Enter your Entra ID connection string", key="entra_connection_string")
-    AZUREDOCINTELLIGENCE_ENDPOINT = st.text_input('Azure Document Intelligence Endpoint', type='default', key='docint_endpoint')
-    AZUREDOCINTELLIGENCE_API_KEY = st.text_input('Azure Document Intelligence API Key', type='password', key='docint_key')
-    AZOPENAI_ENDPOINT = st.text_input('Azure OpenAI Endpoint', type='default', key='openai_endpoint')
-    AZOPENAI_API_KEY = st.text_input('Azure OpenAI API Key', type='password', key='openai_key') 
-    st.text_input("Embedding Model Deployment Name", value="text-embedding-ada-002", key="embedding_model")
-    st.text_input("Chat Completion Model Name", value="gpt-4.1", key="gpt-4.1")
+    st.header("Configuration Requirements")
+    st.text_input("Azure SQL Database Connection String", placeholder="Enter your SQL connection string", key="sql_connection_string", 
+                  help="ODBC Connection string needs to be used. Do update the password parameter in the string with your password.")
+    st.text_input("Azure Entra ID Connection String (Optional)", placeholder="Enter your Entra ID connection string", key="entra_connection_string")
+    st.text_input("Azure OpenAI Endpoint", placeholder="https://<your-resource-name>.openai.azure.com/", key="openai_endpoint")
+    st.text_input("Azure OpenAI API Key", type="password", key="openai_api_key")
+    st.text_input("Embedding Model Deployment Name", placeholder="text-embedding-3-small", key="embedding_model")
+    st.text_input("Chat Completion Model Name", placeholder="gpt-4.1", key="gpt-4.1")
+
+# Automatically expand the sidebar when the user visits the site
+st.sidebar.markdown("<style>.sidebar .sidebar-content {width: 300px;}</style>", unsafe_allow_html=True)
+
+# Streamlit App Title
+st.title("Retrieval-Augmented Generation with Azure SQL and OpenAI")
+
+# Add a subheader below the title with dataset information and link
+st.write("In this tutorial we will be using the [Fine Foods Review Dataset](https://www.kaggle.com/datasets/pookam90/fine-food-reviews-with-embeddings?resource=download), " \
+"process it in dataframe, generate its embeddings, store/query in Azure SQL DB, and perform Q&A using LLM. For detailed explanation, " \
+"please refer to the [GitHub repo](https://github.com/Azure-Samples/azure-sql-db-vector-search/tree/main/Retrieval-Augmented-Generation).")
+st.markdown("**Note:** This is a demo app. Please do not use it for production purposes. The credentials are stored in session state and are not secure. ")
+
+# Section: User Inputs for Configuration
+# Use the provided values directly in the session without storing them permanently
+if st.session_state.sql_connection_string:
+    os.environ['SQL_CONNECTION_STRING'] = st.session_state.sql_connection_string
+if st.session_state.entra_connection_string:
+    os.environ['ENTRAID_CONNECTION_STRING'] = st.session_state.entra_connection_string
+if st.session_state.openai_endpoint:
+    os.environ['AZURE_OPENAI_ENDPOINT'] = st.session_state.openai_endpoint
+if st.session_state.openai_api_key:
+    os.environ['AZURE_OPENAI_API_KEY'] = st.session_state.openai_api_key
+if st.session_state.embedding_model:
+    os.environ['AZURE_OPENAI_EMBEDDING_MODEL_DEPLOYMENT_NAME'] = st.session_state.embedding_model
 
 
-# Store config in session state for use throughout the app
-st.session_state['AZUREDOCINTELLIGENCE_ENDPOINT'] = AZUREDOCINTELLIGENCE_ENDPOINT
-st.session_state['AZUREDOCINTELLIGENCE_API_KEY'] = AZUREDOCINTELLIGENCE_API_KEY
-st.session_state['AZOPENAI_ENDPOINT'] = AZOPENAI_ENDPOINT
-st.session_state['AZOPENAI_API_KEY'] = AZOPENAI_API_KEY
-st.session_state['SQL_CONNECTION_STRING'] = SQL_CONNECTION_STRING
-st.session_state['ENTRA_CONNECTION_STRING'] = ENTRA_CONNECTION_STRING
 
-# Helper to get config from session state
-get_config = lambda k: st.session_state.get(k, '')
-
-# Azure Document Intelligence setup
-def get_document_analysis_client():
-    endpoint = get_config('AZUREDOCINTELLIGENCE_ENDPOINT')
-    key = get_config('AZUREDOCINTELLIGENCE_API_KEY')
-    return DocumentAnalysisClient(endpoint=endpoint, credential=AzureKeyCredential(key))
-
-# Azure OpenAI setup
-def get_openai_embedding_url():
-    endpoint = get_config('AZOPENAI_ENDPOINT')
-    deployment = "text-embedding-ada-002"
-    return f"{endpoint}openai/deployments/{deployment}/embeddings?api-version=2023-05-15"
-
-def get_openai_key():
-    return get_config('AZOPENAI_API_KEY')
-
-# SQL DB connection helper
 def get_mssql_connection():
-    sql_connection_string = get_config('SQL_CONNECTION_STRING')
-    entra_connection_string = get_config('ENTRA_CONNECTION_STRING')
+    """
+    Establish a connection to Azure SQL Database.
+    """
+    entra_connection_string = os.getenv('ENTRAID_CONNECTION_STRING')
+    sql_connection_string = os.getenv('SQL_CONNECTION_STRING')
 
     if entra_connection_string:
-        credential = InteractiveBrowserCredential()
-        # credential = DefaultAzureCredential(exclude_interactive_browser_credential=False)
+        credential = DefaultAzureCredential(exclude_interactive_browser_credential=False)
         token = credential.get_token('https://database.windows.net/.default')
         token_bytes = token.token.encode('UTF-16LE')
         token_struct = struct.pack(f'<I{len(token_bytes)}s', len(token_bytes), token_bytes)
@@ -93,334 +85,289 @@ def get_mssql_connection():
         conn = pyodbc.connect(sql_connection_string)
     else:
         raise ValueError("No valid connection string found.")
-    
+
     return conn
 
-# PDF extraction
-def extract_text_from_pdf(pdf_file):
-    document_analysis_client = get_document_analysis_client()
-    poller = document_analysis_client.begin_analyze_document("prebuilt-layout", document=pdf_file)
-    result = poller.result()
-    text = ""
-    for page in result.pages:
-        for line in page.lines:
-            text += line.content + " "
-    return text
 
-def clean_text(text):
-    text = re.sub(r'\s+', ' ', text)
-    text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
-    return text
+# Section 1: Check and Create Table in Azure SQL Database
+st.subheader("Step 1: Create Table in Azure SQL Database")
 
-# Function to split text into chunks of 500 tokens
-def split_text_into_token_chunks(text, max_tokens=500):
-    tokenizer = tiktoken.get_encoding("cl100k_base")
-    tokens = tokenizer.encode(text)
-    chunks = []
-    for i in range(0, len(tokens), max_tokens):
-        chunk_tokens = tokens[i:i + max_tokens]
-        chunk_text = tokenizer.decode(chunk_tokens)
-        chunks.append(chunk_text)
-    return chunks
-
-# Embedding generation
-def get_embedding(text):
-    openai_url = get_openai_embedding_url()
-    openai_key = get_openai_key()
-    response = requests.post(openai_url,
-        headers={"api-key": openai_key, "Content-Type": "application/json"},
-        json={"input": [text]}
-    )
-    if response.status_code == 200:
-        response_json = response.json()
-        embedding = json.loads(str(response_json['data'][0]['embedding']))
-        return embedding
-    else:
-        return None
-
-# Insert into SQL DB
-def insert_embeddings_to_db(df):
-    """
-    Insert the embeddings DataFrame into the resumedocs table using the correct VECTOR type handling.
-    """
-    conn = get_mssql_connection()
-    cursor = conn.cursor()
-    cursor.fast_executemany = True
-    errors = []
-    rows_inserted = 0
-    for index, row in df.iterrows():
-        chunkid = row['chunkid']
-        filename = row['filename']
-        chunk = row['chunk']
-        embedding = row['embedding']
-        embedding_json = json.dumps(embedding)
-        try:
-            # Use NVARCHAR(MAX) to avoid truncation for large embeddings
-            query = """
-            INSERT INTO resumedocs (chunkid, filename, chunk, embedding)
-            VALUES (?, ?, ?, CAST(CAST(? AS NVARCHAR(MAX)) AS VECTOR(1536)))
-            """
-            cursor.execute(query, chunkid, filename, chunk, embedding_json)
-            rows_inserted += 1
-        except Exception as e:
-            errors.append(f"Row {index}: {e}")
-    conn.commit()
-    conn.close()
-    if errors:
-        st.error(f"Some rows failed to insert: {errors}")
-    elif rows_inserted == 0:
-        st.warning("No rows were inserted into the table. Please check your data and table schema.")
-    else:
-        st.success(f"{rows_inserted} rows inserted successfully into the table.")
-
-# Vector search
-def vector_search_sql(query, num_results=5):
-    """
-    Perform a vector similarity search in the resumedocs table using the VECTOR_DISTANCE function.
-    """
-    conn = get_mssql_connection()
-    cursor = conn.cursor()
-    user_query_embedding = get_embedding(query)
-    embedding_json = json.dumps(user_query_embedding)
-    sql_similarity_search = """
-    SELECT TOP (?) filename, chunkid, chunk,
-           1-vector_distance('cosine', CAST(CAST(? AS NVARCHAR(MAX)) AS VECTOR(1536)), embedding) AS similarity_score,
-           vector_distance('cosine', CAST(CAST(? AS NVARCHAR(MAX)) AS VECTOR(1536)), embedding) AS distance_score
-    FROM dbo.resumedocs
-    ORDER BY distance_score
-    """
-    cursor.execute(sql_similarity_search, num_results, embedding_json, embedding_json)
-    results = cursor.fetchall()
-    conn.close()
-    return results
-
-# LLM completion
-def generate_completion(search_results, user_input):
-    api_key = get_openai_key()
-    azure_endpoint = get_config('AZOPENAI_ENDPOINT')
-    chat_model = "gpt-4.1"
-    client = AzureOpenAI(
-        api_key=api_key,
-        api_version="2023-05-15",
-        azure_endpoint=azure_endpoint
-    )
-    system_prompt = '''
-You are an intelligent & funny assistant who will exclusively answer based on the data provided in the `search_results`:
-- Use the information from `search_results` to generate your top 3 responses. If the data is not a perfect match for the user's query, use your best judgment to provide helpful suggestions and include the following format:
-  File: {filename}
-  Chunk ID: {chunkid}
-  Similarity Score: {similarity_score}
-  Add a small snippet from the Relevant Text: {chunktext}
-  Do not use the entire chunk
-- Avoid any other external data sources.
-- Add a summary about why the candidate maybe a goodfit even if exact skills and the role being hired for are not matching , at the end of the recommendations. Ensure you call out which skills match the description and which ones are missing. If the candidate doesnt have prior experience for the hiring role which we may need to pay extra attention to during the interview process.
-- Add a Microsoft related interesting fact about the technology that was searched 
-'''
-    messages = [{"role": "system", "content": system_prompt}]
-    result_list = []
-    for result in search_results:
-        filename, chunkid, chunktext, similarity_score, _ = result
-        result_list.append({
-            "filename": filename,
-            "chunkid": chunkid,
-            "chunktext": chunktext,
-            "similarity_score": similarity_score
-        })
-    messages.append({"role": "system", "content": f"{result_list}"})
-    messages.append({"role": "user", "content": user_input})
-    response = client.chat.completions.create(model=chat_model, messages=messages, temperature=0)
-    return response.choices[0].message.content
-
-# --- Table Creation Utility ---
-def check_and_create_table():
-    conn = get_mssql_connection()
-    cursor = conn.cursor()
-    # Check if table exists
-    cursor.execute("""
-        SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'resumedocs'
-    """)
-    exists = cursor.fetchone()[0]
-    if not exists:
-        # Create table using schema from CreateTable.sql
-        cursor.execute('''
-            CREATE TABLE resumedocs (
-                id INT IDENTITY(1,1) PRIMARY KEY,
-                chunkid NVARCHAR(255),
-                filename NVARCHAR(255),
-                chunk NVARCHAR(MAX),
-                embedding VECTOR(1536)
-            )
-        ''')
-        conn.commit()
-        conn.close()
-        return False  # Table was created
-    conn.close()
-    return True  # Table already existed
-
-# Streamlit UI
-st.title("RAG Resume Matcher with Azure SQL DB, Document Intelligence, and OpenAI")
-st.markdown("In this tutorial we will be using [PDF resumes from Kaggle](https://www.kaggle.com/datasets/snehaanbhawal/resume-dataset), " \
-"extract and chunk its text, generate its embeddings, store/query in Azure SQL DB, and perform Q&A using LLM.  \nFor detailed explanation, " \
-"please refer to the [GitHub repo](https://github.com/Azure-Samples/azure-sql-db-vector-search/tree/main/RAG-with-Documents).")
-st.markdown("""**Note:** This is a demo app. Please do not use it for production purposes.  
-            Do check for the Firewall setup in your Azure SQL Database. You can use the [Azure Portal](https://portal.azure.com/) to configure the firewall settings to allow access from your IP address. 
-            Steps to configure the firewall can be found [here](https://github.com/Kushagra-2000/sql-vector-search-demo/blob/main/README.md#:~:text=Setup%20Firewall%20Configuration).
-            """)
-
-# Step 1: Check/Create Table
-st.subheader("Step 1: SQL Database Table Creation")
+# Add collapsible markdown section to explain the table creation process
 with st.expander("**Table Creation Process**"):
-    st.markdown("We will insert our vectors into the SQL Table. Azure SQL DB now has a dedicated, native, data type for storing vectors: the `vector` data type. Read about the preview [here](https://devblogs.microsoft.com/azure-sql/eap-for-vector-support-refresh-introducing-vector-type/).  " \
+    st.markdown("We will insert our vectors into the SQL Table. Azure SQL DB now has a dedicated, native, data type for storing vectors: the vector data type. Read about the preview [here](https://devblogs.microsoft.com/azure-sql/eap-for-vector-support-refresh-introducing-vector-type/).  " \
     "\nTo facilitate creation of the table, following SQL query would be executed:")
     st.code("""
-    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'resumedocs')
+    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'embeddings')
     BEGIN
-        CREATE TABLE resumedocs (
-            id INT IDENTITY(1,1) PRIMARY KEY,
-            chunkid NVARCHAR(255),
-            filename NVARCHAR(255),
-            chunk NVARCHAR(MAX),
-            'embedding VECTOR(1536)'
+        CREATE TABLE [dbo].[embeddings]
+        (
+            [Id] [bigint] NULL,
+            [ProductId] [nvarchar](500) NULL,
+            [UserId] [nvarchar](50) NULL,
+            [Score] [bigint] NULL,
+            [Summary] [nvarchar](max) NULL,
+            [Text] [nvarchar](max) NULL,
+            [Combined] [nvarchar](max) NULL,
+            '[Vector] [vector](1536) NULL'
         )
     END
     """)
-if st.button("Check/Create documents Table"):
-    existed = check_and_create_table()
-    if existed:
-        st.success("Table already exists in the database.")
-    else:
-        st.success("Table was created in the database.")
 
-# Step 2: Upload PDF files
-st.subheader("Step 2: Process PDF documents")
+def check_and_create_table():
+    conn = get_mssql_connection()
+    cursor = conn.cursor()
+    
+    # Check if the table exists
+    check_table_query = """
+    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'embeddings')
+    BEGIN
+        CREATE TABLE [dbo].[embeddings]
+        (
+            [Id] [bigint] NULL,
+            [ProductId] [nvarchar](500) NULL,
+            [UserId] [nvarchar](50) NULL,
+            [Score] [bigint] NULL,
+            [Summary] [nvarchar](max) NULL,
+            [Text] [nvarchar](max) NULL,
+            [Combined] [nvarchar](max) NULL,
+            [Vector] [vector](1536) NULL
+        )
+    END
+    """
+    cursor.execute(check_table_query)
+    conn.commit()
+    conn.close()
+
+if st.button("Create Table"):
+    try:
+        check_and_create_table()
+        st.success("Table checked and created successfully in Azure SQL Database!")
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
+
+
+
+# Section 2: Upload and Process Dataset
+st.subheader("Step 2: Upload and Process Dataset")
+
+with st.expander("**About Dataset**"):
+    st.markdown("The dataset is about the customer reviews dataset from FineFoods and enriching it with embeddings generated via the `text-embedding-3-small` Azure OpenAI model. " \
+    "The embeddings will be generated using the concatenation of `Summary + Text` field. Imagine a user asks, “What's the best coffee?” We'll transform their query into a vector and search our database of reviews to extract all products that are similar to provided question.")
+    st.markdown("You can find the sample dataset here: [GitHub](https://github.com/Azure-Samples/azure-sql-db-vector-search/blob/main/Datasets). Check out the **reviews.csv** file for this step. ")
+
 with st.expander("**Dataset Processing**"):
-    st.markdown("Next we'll be using **Azure Document Intelligence** to analyze text and structured data from the PDF resumes. " \
-    "DocumentAnalysisClient provides operations for analyzing input documents using prebuilt and custom models through the `begin_analyze_document` and `begin_analyze_document_from_url` APIs. In this tutorial, we are using the [prebuilt-layout](https://learn.microsoft.com/en-us/python/api/overview/azure/ai-formrecognizer-readme?view=azure-python#using-prebuilt-models)." )
-    st.markdown("When faced with content that exceeds the embedding limit, we usually also chunk the content into smaller pieces and then embed those one at a time. " \
-    "Here we will use `tiktoken` to chunk the extracted text into **token sizes of 500**, as we will later pass the extracted chunks to to the `text-embedding-small` model "
-    "for [generating text embeddings](https://learn.microsoft.com/en-us/azure/ai-services/openai/tutorials/embeddings?tabs=python-new%2Ccommand-line&pivots=programming-language-python) as this has a model input token limit of 8192.")
-uploaded_files = st.file_uploader("Upload docs", type=["pdf"], accept_multiple_files=True)
+    st.markdown("Next we'll perform some light data cleaning on the uploaded reviews dataset by removing redundant whitespace and cleaning up the punctuation to prepare the data for tokenization." \
+    " We will also remove comments that are too long for the token limit (8192 tokens - the maximum length of input text for the Azure OpenAI embedding models). When faced with content that exceeds the embedding limit, you can also chunk the content into smaller pieces and then embed those one at a time. You can read more about data chunking [here](https://learn.microsoft.com/en-us/azure/search/vector-search-how-to-chunk-documents)")
 
-# Use session state to avoid reprocessing and persist results
-if 'df' not in st.session_state:
-    st.session_state['df'] = None
-if 'result_df' not in st.session_state:
-    st.session_state['result_df'] = None
-if 'insert_status' not in st.session_state:
-    st.session_state['insert_status'] = None
-
-if uploaded_files:
-    if st.session_state.get('last_uploaded_files') != [f.name for f in uploaded_files]:
-        # Only process if new files are uploaded
-        all_data = []
-        status_placeholder = st.empty()  # Placeholder for status messages
-        total_chunks = 0
-        for file in uploaded_files:
-            status_placeholder.info(f"Processing: {file.name}")
-            text = extract_text_from_pdf(file)
-            cleaned = clean_text(text)
-            chunks = split_text_into_token_chunks(cleaned)
-            total_chunks += len(chunks)
-            status_placeholder.success(f"Extracted {len(chunks)} chunks from {file.name}")
-            for chunk_id, chunk in enumerate(chunks):
-                chunk_text = chunk.strip() if chunk.strip() else "NULL"
-                unique_chunk_id = f"{file.name}_{chunk_id}"
-                all_data.append({
-                    "file_name": file.name,
-                    "chunk_id": chunk_id,
-                    "chunk_text": chunk_text,
-                    "unique_chunk_id": unique_chunk_id
-                })
-        df = pd.DataFrame(all_data)
-        st.session_state['df'] = df
-        st.session_state['result_df'] = None  # Reset embeddings if new files
-        st.session_state['insert_status'] = None
-        st.session_state['last_uploaded_files'] = [f.name for f in uploaded_files]
-        # After processing all files, show a summary success message
-        status_placeholder.success(f"Processed {len(uploaded_files)} file(s) and extracted a total of {total_chunks} text chunks.")
+uploaded_file = st.file_uploader("Upload the CSV file for embedding generation", type="csv")
+if uploaded_file is not None:
+    # Only reload DataFrame if file changes
+    if 'uploaded_df' not in st.session_state or st.session_state.get('last_uploaded_file') != uploaded_file.name:
+        df = pd.read_csv(uploaded_file)
+        required_columns = ["Id", "Time", "ProductId", "UserId", "Score", "Summary", "Text"]
+        df = df[required_columns]
+        df["combined"] = df["Summary"].str.strip() + ": " + df["Text"].str.strip()
+        st.session_state['uploaded_df'] = df
+        st.session_state['last_uploaded_file'] = uploaded_file.name
+        st.session_state['embeddings_df'] = None  # Reset embeddings if new file
+        st.session_state['search_results'] = None
     else:
-        df = st.session_state['df']
-    st.write("Preview of processed dataset:")
-    st.dataframe(df.head(6), height=250)
+        df = st.session_state['uploaded_df']
+    st.write("Preview of Uploaded Dataset:")
+    st.dataframe(df.head())
+    st.write("Processed Dataset:")
+    st.dataframe(df.head())
 
-# Step 3: Generate embeddings
-st.subheader("Step 3: Embedding Generation")
+# Section 3: Generate and display Embeddings for the first 10 rows of the DataFrame
+st.subheader("Step 3: Generate Embeddings")
+
 with st.expander("**What are Embeddings ?**"):
     st.markdown("""
-                - After extracting and chunking the text from PDF resumes, we will generate embeddings for each chunk. These embeddings are **numerical representations** of the text that capture its semantic meaning. 
-                By creating embeddings for the text chunks, we can perform advanced similarity searches and enhance language model generation. 
-                - We will use the Azure OpenAI API to generate these embeddings. The `get_embedding` function defined below takes a piece of text as input 
-                and returns its embedding using the `text-embedding-ada-002` model
-                """)
+    An **embedding** is a special format of data representation that is optimized for use by machine learning models and algorithms. It is an information-dense representation of the semantic meaning of a piece of text.
 
-if st.session_state['df'] is not None:
-    if st.button("Generate Embeddings") or st.session_state.get('result_df') is not None:
-        if st.session_state.get('result_df') is None:
-            df = st.session_state['df']
-            all_filenames, all_chunkids, all_chunks, all_embeddings = [], [], [], []
-            for index, row in df.iterrows():
-                filename = row['file_name']
-                chunkid = row['unique_chunk_id']
-                chunk = row['chunk_text']
-                embedding = get_embedding(chunk)
-                if embedding is not None:
-                    all_filenames.append(filename)
-                    all_chunkids.append(chunkid)
-                    all_chunks.append(chunk)
-                    all_embeddings.append(embedding)
-                if (index + 1) % 10 == 0:
-                    st.write(f"Completed {index + 1} rows")
-            # Always show the final count
-            st.success(f"Completed {len(df)} rows")
-            result_df = pd.DataFrame({
-                'filename': all_filenames,
-                'chunkid': all_chunkids,
-                'chunk': all_chunks,
-                'embedding': all_embeddings
-            })
-            st.session_state['result_df'] = result_df
-        st.dataframe(st.session_state['result_df'].head())
+    Each embedding is a vector of floating point numbers. The key characteristic of these vectors is that the distance between two embeddings in the vector space is indicative of the semantic similarity between the two corresponding inputs in their original format. For instance:
 
-# Step 4: Insert into DB
-st.subheader("Step 4: Insert data into SQL DB")
+    - If two pieces of text are semantically similar, their vector representations will also be close to each other.
+    - Conversely, dissimilar texts will have embeddings that are farther apart in the vector space.
+                
+    We will now generate the embeddings for the **combined** column (*Product summary + Review*) using the defined `get_embeddings` function that leverages the Azure OpenAI `text-embedding-3-small` model.
+    Since the embedding generation process can be time-consuming, we will only generate embeddings for the *first 10 rows* of the dataset for demonstration purposes.
+    """)
+
+def get_embedding(text):
+    """
+    Get sentence embedding using the Azure OpenAI text-embedding-ada-002.
+    """
+    openai_url = os.environ.get('AZURE_OPENAI_ENDPOINT') + "/openai/deployments/text-embedding-ada-002/embeddings?api-version=2023-05-15"
+    response = requests.post(
+        openai_url,
+        headers={"api-key": os.environ.get('AZURE_OPENAI_API_KEY'), "Content-Type": "application/json"},
+        json={"input": [text]}
+    )
+    return response.json()['data'][0]['embedding']
+
+def generate_embeddings(df):
+    """
+    Generate embeddings for the first 10 rows of the DataFrame.
+    """
+    df = df.head(10).copy()  
+    df.loc[:, "vector"] = df["combined"].apply(get_embedding)  
+    return df
+
+if uploaded_file is not None:
+    if st.button("Generate Embeddings") or st.session_state.get('embeddings_df') is not None:
+        if st.session_state.get('embeddings_df') is None:
+            df = st.session_state['uploaded_df']
+            embeddings_df = generate_embeddings(df)
+            st.session_state['embeddings_df'] = embeddings_df
+        else:
+            embeddings_df = st.session_state['embeddings_df']
+        st.success("Embeddings generated successfully!")
+        st.dataframe(embeddings_df.head(10))
+
+# Section 4: Upload Pre-Generated Embeddings to Database
+st.subheader("Step 4: Upload Pre-Generated Embeddings")
+
 with st.expander("**Vector Embedding Storage in Azure SQL Database**"):
     st.markdown("""
+    Let's import **finefoodembeddings.csv** ([GitHub](https://github.com/Azure-Samples/azure-sql-db-vector-search/blob/main/Datasets/FineFoodEmbeddings.csv) / [Kaggle](https://www.kaggle.com/datasets/pookam90/fine-food-reviews-with-embeddings?resource=download)) which contains embeddings for the entire dataset calculated in the same manner as above, directly to the SQL table      
+
     We will insert our vectors into the SQL Table now. The table embeddings has a column called **vector** which is vector(1536) type.
 
     We will pass the vectors by converting a JSON array to a compact **binary** representation of a vector. Vectors are stored in an efficient binary format that also enables usage of dedicated CPU vector processing extensions like SIMD and AVX.       
     """)
-    # st.code("""
-    #         INSERT INTO resumedocs (chunkid, filename, chunk, embedding)
-    #         VALUES (?, ?, ?, CAST(CAST(? AS NVARCHAR(MAX)) AS VECTOR(1536)))
-    #         """)
-if st.session_state.get('result_df') is not None:
-    if st.button("Insert Embeddings into Azure SQL DB") or st.session_state.get('insert_status') is not None:
-        if st.session_state.get('insert_status') is None:
-            result_df = st.session_state['result_df']
-            insert_embeddings_to_db(result_df)
-            st.session_state['insert_status'] = True
-        with st.expander("**Preview of the inserted data:**"):
-            st.dataframe(st.session_state['result_df'].head())
 
-# Step 5: Query and Q&A
-st.subheader("Step 5: Vector Search and LLM Q&A")
-with st.expander("**Vector Search**"):
+
+# Upload pre-generated embeddings CSV file
+uploaded_embeddings_file = st.file_uploader("Upload the CSV file with pre-generated embeddings", type="csv")
+
+if uploaded_embeddings_file is not None:
+    embeddings_df = pd.read_csv(uploaded_embeddings_file)
+    st.write("Preview of Uploaded Embeddings Dataset:")
+    st.dataframe(embeddings_df.head())  # Keep preview small for performance
+
+    # Ensure the vector column is properly deserialized into a list of numeric values
+    embeddings_df['vector'] = embeddings_df['vector'].apply(json.loads)
+
+    # ✅ Pre-serialize vectors once (avoid doing inside loop)
+    embeddings_df['vector'] = embeddings_df['vector'].apply(json.dumps)
+
+    # ✅ Prepare data as a list of tuples using zip (faster than iterrows)
+    data_to_insert = list(zip(
+        embeddings_df['Id'],
+        embeddings_df['ProductId'],
+        embeddings_df['UserId'],
+        embeddings_df['Score'],
+        embeddings_df['Summary'],
+        embeddings_df['Text'],
+        embeddings_df['combined'],
+        embeddings_df['vector']
+    ))
+
+    # Insert embeddings into the database
+    if st.button("Insert Pre-Generated Embeddings into Database"):
+        try:
+            conn = get_mssql_connection()
+            cursor = conn.cursor()
+            cursor.fast_executemany = True  # Enable fast execution for batch insertion
+
+            query = """
+            INSERT INTO embeddings (Id, ProductId, UserId, score, summary, text, combined, vector)
+            VALUES (?, ?, ?, ?, ?, ?, ?, CAST(CAST(? AS VARCHAR(MAX)) AS VECTOR(1536)))
+            """
+
+            # ✅ Insert in chunks for better memory handling
+            batch_size = 1000
+            for i in range(0, len(data_to_insert), batch_size):
+                cursor.executemany(query, data_to_insert[i:i+batch_size])
+
+            conn.commit()
+            conn.close()
+            st.success("Pre-generated embeddings inserted into the database successfully!")
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
+
+# ---------------------------
+# Section 5: Perform Vector Search
+# ---------------------------
+st.subheader("Step 5: Perform Vector Search")
+
+with st.expander("**Vector Search and Completion**"):
     st.markdown(""" 
-Let's now query our ResumeDocs table to get the top similar candidates given the User search query.
+Let's now query our embedding table to get the top similar reviews given the User search query.
 
 What we are doing: Given any user search query, we can get the vector representation of that text.
 
-Then we can use that vector to calculate the **cosine distance** against all the resume embeddings stored in the database and take only the closest ones which will return the resumes most relevant to the user's query. This helps in finding the most suitable candidates based on their resumes.
+Then we can use that vector to calculate the **cosine distance** against all the customer review comments stored in the database and take only the closest ones which will return the product most likely connected to the product we are interested in.
                 
 **SQL Query:**
                 """)
     st.code("""
-            SELECT TOP (?) filename, chunkid, chunk,
-           VECTOR_DISTANCE('cosine', @e, Vector) AS distance_score,
-    FROM dbo.resumedocs
-    ORDER BY distance_score
-    """)
+           SELECT TOP(?) ProductId, Summary, text,               
+                VECTOR_DISTANCE('cosine', @e, Vector) AS Distance
+            FROM dbo.embeddings
+            ORDER BY Distance;
+            """)
 
+# Input fields
+user_query = st.text_input("Enter your search query")
+num_results = st.number_input("Number of results to retrieve", min_value=1, max_value=100, value=5)
+
+# Clear session state button
+if st.button("Clear Results"):
+    st.session_state.pop('search_results', None)
+    st.session_state.pop('last_user_query', None)
+    st.session_state.pop('last_num_results', None)
+    st.success("Previous search results cleared!")
+
+# Vector search function
+def vector_search_sql(query, num_results):
+    conn = get_mssql_connection()
+    cursor = conn.cursor()
+    user_query_embedding = get_embedding(query)
+    user_query_embedding_json = json.dumps(user_query_embedding)
+    sql_similarity_search = """
+    SELECT TOP(?) ProductId, Summary, text,
+           1 - vector_distance('cosine', CAST(CAST(? AS VARCHAR(MAX)) AS VECTOR(1536)), [vector]) AS similarity_score
+    FROM dbo.embeddings
+    ORDER BY similarity_score DESC
+    """
+    cursor.execute(sql_similarity_search, (num_results, user_query_embedding_json))
+    results = cursor.fetchall()
+    conn.close()
+    return results
+
+# Run search only on button click
+if st.button("Vector Search"):
+    if user_query:
+        # Reset if query or num_results changed
+        if (
+            st.session_state.get('last_user_query') != user_query or
+            st.session_state.get('last_num_results') != num_results
+        ):
+            st.session_state.pop('search_results', None)
+
+        search_results = vector_search_sql(user_query, num_results)
+        st.session_state['search_results'] = search_results
+        st.session_state['last_user_query'] = user_query
+        st.session_state['last_num_results'] = num_results
+    else:
+        st.error("Please enter a search query.")
+
+# Display results
+if st.session_state.get('search_results') is not None:
+    st.write("### Search Results:")
+    for result in st.session_state['search_results']:
+        st.write(f"**Product ID:** {result[0]}")
+        st.write(f"**Summary:** {result[1]}")
+        st.write(f"**Text:** {result[2]}")
+        st.write(f"**Similarity Score:** {result[3]:.4f}")
+        st.write("---")
+
+# ---------------------------
+# Section 6: Augment LLM Generation
+# ---------------------------
+st.subheader("Step 6: Augument LLM Generation")
 with st.expander("**Augment LLM Generation**"):
     st.markdown("""
     A helper function is created to feed prompts into the **OpenAI Completions model** & create interactive loop where you can pose questions to the model and receive information grounded in your data.
@@ -429,42 +376,85 @@ The function `generate_completion` is defined to help ground the GPT 4.1 model w
 We are passing the results of the `vector_search_sql` function to the model and we define the system prompt as follows:
                 """)
     st.code("""
-            '''You are an intelligent & funny assistant who will exclusively answer based on the data provided in the `search_results`:
-- Use the information from `search_results` to generate your top 3 responses. If the data is not a perfect match for the user's query, use your best judgment to provide helpful suggestions and include the following format:
-  File: {filename}
-  Chunk ID: {chunkid}
-  Similarity Score: {similarity_score}
-  Add a small snippet from the Relevant Text: {chunktext}
-  Do not use the entire chunk
-- Avoid any other external data sources.
-- Add a summary about why the candidate maybe a goodfit even if exact skills and the role being hired for are not matching , at the end of the recommendations. Ensure you call out which skills match the description and which ones are missing. If the candidate doesnt have prior experience for the hiring role which we may need to pay extra attention to during the interview process.
-- Add a Microsoft related interesting fact about the technology that was searched'''
+    system_prompt = '''
+    You are an intelligent & funny assistant who will exclusively answer based on the data provided in the `search_results`:
+    - Use the information from `search_results` to generate your responses. If the data is not a perfect match for the user's query, use your best judgment to provide helpful suggestions and include the following format:
+      Product ID: {product_id}
+      Summary: {summary}
+      Review: {text}
+      Similarity Score: {similarity_score}
+    - Avoid any other external data sources.
+    - Rank them from most relevant to least.
+    - End with a "Final Summary" paragraph that summarizes the overall findings and suggests the best pick.
+    - Add a fun fact related to the overall product searched at the end of the recommendations.
+    - Tone: Helpful, conversational, and slightly playful.
+    - Add emojis for ranking (🔥 for top pick, ⭐ for others).
             """)
+    
+# Azure OpenAI client
+client = AzureOpenAI(
+    api_key=os.getenv('AZURE_OPENAI_API_KEY'),
+    api_version="2023-05-15",
+    azure_endpoint=os.getenv('AZURE_OPENAI_ENDPOINT')
+)
 
+def generate_completion(search_results, user_query):
+    system_prompt = '''
+    You are an intelligent & funny assistant who will exclusively answer based on the data provided in the `search_results`:
+    - Use the information from `search_results` to generate your responses. If the data is not a perfect match for the user's query, use your best judgment to provide helpful suggestions and include the following format:
+      Product ID: {product_id}
+      Summary: {summary}
+      Review: {text}
+      Similarity Score: {similarity_score}
+    - Avoid any other external data sources.
+    - Rank them from most relevant to least.
+    - End with a "Final Summary" paragraph that summarizes the overall findings and suggests the best pick.
+    - Add a fun fact related to the overall product searched at the end of the recommendations.
+    - Tone: Helpful, conversational, and slightly playful.
+    - Add emojis for ranking (🔥 for top pick, ⭐ for others).
+    '''
 
-user_query = st.text_input("What role or skills are you hiring for?")
+    messages = [{"role": "system", "content": system_prompt}]
+    result_list = [
+        {
+            "product_id": r[0],
+            "summary": r[1],
+            "text": r[2],
+            "similarity_score": r[3]
+        }
+        for r in search_results
+    ]
+    messages.append({"role": "system", "content": f"{result_list}"})
+    messages.append({"role": "user", "content": user_query})
 
-# Use session state to persist results
-if 'search_results' not in st.session_state:
-    st.session_state['search_results'] = None
-if 'llm_response' not in st.session_state:
-    st.session_state['llm_response'] = None
+    response = client.chat.completions.create(
+        model='gpt-4.1',
+        messages=messages,
+        temperature=0
+    )
+    return response.model_dump()
 
-if st.button("**Find Candidates**") and user_query:
-    search_results = vector_search_sql(user_query)
-    st.session_state['search_results'] = search_results
-    st.session_state['llm_response'] = None  # Reset LLM response on new search
+if st.button("Generate Response"):
+    if user_query:
+        try:
+            # Use cached results if query unchanged
+            if (
+                st.session_state.get('search_results') is not None and
+                st.session_state.get('last_user_query') == user_query and
+                st.session_state.get('last_num_results') == num_results
+            ):
+                search_results = st.session_state['search_results']
+            else:
+                search_results = vector_search_sql(user_query, num_results)
+                st.session_state['search_results'] = search_results
+                st.session_state['last_user_query'] = user_query
+                st.session_state['last_num_results'] = num_results
 
-if st.session_state['search_results']:
-    st.write("**Top matching candidates:**")
-    for r in st.session_state['search_results']:
-        st.write(f"File: {r[0]}, Similarity Score: {r[3]:.3f}, Chunk ID: {r[1]}")
-        with st.expander(f"**Chunk Snippet:** {r[2][:50]}..."):
-            st.write(r[2])
-    st.write("---")
-    if st.button("**Ask LLM for Recommendation**"):
-        completions_results = generate_completion(st.session_state['search_results'], user_query)
-        st.session_state['llm_response'] = completions_results
-
-if st.session_state['llm_response']:
-    st.write(st.session_state['llm_response'])
+            completion_response = generate_completion(search_results, user_query)
+            st.write("### Generated Response:")
+            st.write(completion_response['choices'][0]['message']['content'])
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
+    else:
+        st.error("Please enter a search query.")
+# ---------------------------
