@@ -92,7 +92,7 @@
             }
         },
         "embedding_model": {
-            "defaultValue": "text-embedding-3-small",
+            "defaultValue": "text-embedding-ada-002",
             "type": "String",
             "metadata": {
                 "description": "Name of the embedding model used to convert text into vector representations for semantic search or similarity tasks. Recommended to keep same as default value."
@@ -124,7 +124,8 @@
             "apiVersion": "2024-10-01",
             "name": "[concat(parameters('OpenAI_account_name'), '/', parameters('OpenAI_chat_completion_model'))]",
             "dependsOn": [
-                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('OpenAI_account_name'))]"
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('OpenAI_account_name'))]",
+				"[resourceId('Microsoft.CognitiveServices/accounts/deployments', parameters('OpenAI_account_name'), parameters('OpenAI_chat_completion_model'))]"
             ],
             "sku": {
                 "name": "GlobalStandard",
@@ -149,14 +150,14 @@
                 "[resourceId('Microsoft.CognitiveServices/accounts', parameters('OpenAI_account_name'))]"
             ],
             "sku": {
-                "name": "GlobalStandard",
+                "name": "Standard",
                 "capacity": 150
             },
             "properties": {
                 "model": {
                     "format": "OpenAI",
-                    "name": "text-embedding-3-small",
-                    "version": "1"
+                    "name": "text-embedding-ada-002",
+                    "version": "2"
                 },
                 "versionUpgradeOption": "NoAutoUpgrade",
                 "currentCapacity": 150,
@@ -219,3 +220,7 @@
         }
     ]
 }
+
+
+
+
