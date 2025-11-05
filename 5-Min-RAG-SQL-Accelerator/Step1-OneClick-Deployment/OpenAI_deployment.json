@@ -23,7 +23,7 @@
             }
         },
         "embedding_model": {
-            "defaultValue": "text-embedding-3-small",
+            "defaultValue": "text-embedding-ada-002",
             "type": "String",
             "metadata": {
                 "description": "The name of Azure OpenAI embedding model."
@@ -86,7 +86,7 @@
             "properties": {
                 "model": {
                     "format": "OpenAI",
-                    "name": "text-embedding-3-small",
+                    "name": "text-embedding-ada-002",
                     "version": "1"
                 },
                 "versionUpgradeOption": "NoAutoUpgrade",
