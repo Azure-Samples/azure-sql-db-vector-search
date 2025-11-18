@@ -4,10 +4,6 @@ GO
 USE DiskANNQuickstart;
 GO
 
--- Make sure you use RC0 for this sample
-SELECT @@VERSION
-GO
-
 -- Step 0: Enable Preview Feature
 ALTER DATABASE SCOPED CONFIGURATION
 SET PREVIEW_FEATURES = ON;
