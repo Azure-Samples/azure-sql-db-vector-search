@@ -170,10 +170,9 @@ Vector similarity search is fast and efficient for retrieving semantically simil
 
 | File | Description |
 |------|-------------|
-| [rerank.sql](rerank.sql) | Main re-ranking demonstration script |
-| [setup.sql](setup.sql) | Database credential setup for external REST endpoint |
-| [credentials.sql](credentials.sql) | Credential configuration |
-| [test.http](test.http) | HTTP test file for API testing |
+| [00-setup.sql](00-setup.sql) | Database credential setup for external REST endpoint |
+| [01-credentials.sql](01-credentials.sql) | Credential configuration |
+| [02-rerank.sql](02-rerank.sql) | Main re-ranking demonstration script |
 
 ## References
 
