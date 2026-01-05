@@ -54,7 +54,7 @@ The Python sample in the [Hybrid-Search](./Hybrid-Search/) folder shows how to c
 
 ### Semantic Reranking Vector Search
 
-Rerank models sort text inputs by semantic relevance to a specified query. They are often used to sort search results returned from an existing search solution. A sample using a semantic re-ranker to improve the output of vector search can be found here: [Semantic-Reranking](./Semantic-Reranking).
+Rerank models evaluate and reorder text inputs according to their semantic relevance to a specific query, and are often applied after an initial search to improve result quality. A sample using a semantic re-ranker to improve the output of vector search can be found here: [Semantic-Reranking](./Semantic-Reranking).
 
 ### Retrieval Augmented Generation
 
