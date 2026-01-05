@@ -11,15 +11,8 @@ go
 select db_id(), @@spid
 go
 
--- Enable preview_features configuration for vector index features
-alter database scoped configuration
-set preview_features = on;
-go
-select * from sys.database_scoped_configurations where [name] = 'preview_features'
-go
-
 --- Create Indexes 
---- (with 16 vCores, creation time is expected to be 30 seconds for each index)
+--- (with 16 vCores, creation time is expected to be 15 seconds for each index)
 --- Monitor index creation progress using:
 --- select session_id, status, command, percent_complete from sys.dm_exec_requests where session_id = <session id>
 create vector index vec_idx on [dbo].[wikipedia_articles_embeddings]([title_vector]) 
@@ -39,7 +32,7 @@ set statistics time on
 go
 
 /*
-	Option 1: LOAD A PRE-GENERATED EMBEDDING
+	Option 1: LOAD A PRE-GENERATED EMBEDDING (only for SQL Server 2025)
 	
 	The following code loads a pre-generated embedding for the text
 	"The foundation series by Isaac Asimov" using the "ada2-text-embedding" model
@@ -59,13 +52,14 @@ go
 */
 
 /*
-	Option 2: Get the pre-calculated embedding via REST call
+	Option 2: Get the pre-calculated embedding via REST call (only for SQL Server 2025)
 
 	The following code loads a pre-generated embedding for the text
 	"The foundation series by Isaac Asimov" using the "ada2-text-embedding" model
 	Uncomment the following text if you don't have access to a OpenAI model,
 	otherwise it is recommended to use the new "ai_generate_embedding" function
-	by using the code in the "Option 2" section below*/
+	by using the code in the "Option 2" section below
+*/
 /*
 -- Enable external rest endpoint used by sp_invoke_external_rest_endpoint procedure
 exec sp_configure 'external rest endpoint enabled', 1

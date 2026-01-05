@@ -1,5 +1,5 @@
 /*
-	This script requires SQL Server 2025
+	This script requires SQL Server 2025 
 */
 
 create database WikipediaTest
@@ -66,4 +66,13 @@ select *,
 	DATALENGTH(CAST(content_vector as varchar(max))) as chars
 from 
 	[dbo].[wikipedia_articles_embeddings] where title like 'Philosoph%'
+go
+
+/*
+	Enable preview_features configuration for vector index features
+*/
+alter database scoped configuration
+set preview_features = on;
+go
+select * from sys.database_scoped_configurations where [name] = 'preview_features'
 go

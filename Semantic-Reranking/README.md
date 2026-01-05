@@ -1,4 +1,4 @@
-# Azure SQL and SQL Server Re-Ranking Sample
+# Azure SQL and SQL Server Semantic Re-Ranking Sample
 
 This sample demonstrates how to use **vector search with re-ranking** in Azure SQL Database or SQL Server 2025 to improve the relevance of search results. Re-ranking is a two-stage retrieval technique where an initial set of candidates is retrieved using vector similarity search, and then a more sophisticated model re-ranks those results for better relevance.
 
