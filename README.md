@@ -8,7 +8,7 @@ To use the provided samples make sure you have the following pre-requisites:
 
 1. An Azure subscription - [Create one for free](https://azure.microsoft.com/pricing/purchase-options/azure-account)
 
-1. Azure SQL Database - [Create one for free](https:/learn.microsoft.com/azure/azure-sql/database/free-offer?view=azuresql) or [SQL Server 2025 RC1](https://www.microsoft.com/en-us/evalcenter/sql-server-2025-downloads) if you want to test DiskANN.
+1. Azure SQL Database - [Create one for free](https:/learn.microsoft.com/azure/azure-sql/database/free-offer?view=azuresql) or [SQL Server 2025](https://www.microsoft.com/en-us/evalcenter/sql-server-2025-downloads) if you want to test DiskANN.
 
 1. Make sure you have an [Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/overview) resource created in your Azure subscription.
 
@@ -18,7 +18,12 @@ To use the provided samples make sure you have the following pre-requisites:
 
 1. If you are going to clone this repository in your machine, make sure to have installed the `git-lfs` extension: [Git Large File Storage](https://git-lfs.com/)
 
-1. For testing DiskANN, at the moment, you need to use SQL Server 2025. See the announcement here: [Announcing Public Preview of DiskANN in SQL Server 2025](https://techcommunity.microsoft.com/blog/sqlserver/announcing-public-preview-of-diskann-in-sql-server-2025/4414683).
+1. For testing DiskANN you need to use SQL Server 2025 or Azure SQL. See the announcement here:
+  
+    - [SQL Server 2025 Embraces Vectors: setting the foundation for empowering your data with AI](https://devblogs.microsoft.com/azure-sql/sql-server-2025-embraces-vectors-setting-the-foundation-for-empowering-your-data-with-ai/)
+  
+    - [Public preview of vector indexing in Azure SQL DB, Azure SQL MI, and SQL database in Microsoft Fabric](https://devblogs.microsoft.com/azure-sql/public-preview-of-vector-indexing-in-azure-sql-db-azure-sql-mi-and-sql-database-in-microsoft-fabric/)
+
 
 ## Samples  
 
@@ -34,19 +39,26 @@ Learn how to get embeddings from OpenAI directly from Azure SQL using the sample
 
 The [Vector-Search](./Vector-Search) example illustrates the implementation of Vector Similarity Search within an SQL database, highlighting the capabilities of semantic search. By leveraging vector representations of text, the system can identify reviews that share contextual similarities with a given search query, transcending the limitations of keyword exact matches. Additionally, it demonstrates the integration of Keyword Search to guarantee the inclusion of specific terms within the search outcomes.
 
-#### Hybrid Search
-
-The Python sample in the [Hybrid-Search](./Hybrid-Search/) folder shows how to combine Fulltext search in Azure SQL database with BM25 ranking and cosine similarity ranking to do hybrid search.
-
-### Retrieval Augmented Generation
-
-The RAG pattern is a powerful way to generate text using a pre-trained language model and a retrieval mechanism. The [Retrieval Augmented Generation](./Retrieval-Augmented-Generation) folder contains a sample that demonstrates how to use the RAG pattern with Azure SQL and Azure OpenAI, using Python notebooks.
-
 ### Approximate Vector Search
 
 The [DiskANN](./DiskANN/) folder contains a sample that demonstrates how to use the new `VECTOR_SEARCH` function with DiskANN. The sample uses a subset of Wikipedia data to create a table with a vector column, insert data, and perform approximate nearest neighbor search using the `VECTOR_SEARCH` function.
 
-This sample, at the moment, requires SQL Server 2025. See the announcement here: [Announcing Public Preview of DiskANN in SQL Server 2025](https://techcommunity.microsoft.com/blog/sqlserver/announcing-public-preview-of-diskann-in-sql-server-2025/4414683).
+This sample, at the moment, requires SQL Server 2025 or Azure SQL. See the announcement here:
+
+- [SQL Server 2025 Embraces Vectors: setting the foundation for empowering your data with AI](https://devblogs.microsoft.com/azure-sql/sql-server-2025-embraces-vectors-setting-the-foundation-for-empowering-your-data-with-ai/)
+- [Public preview of vector indexing in Azure SQL DB, Azure SQL MI, and SQL database in Microsoft Fabric](https://devblogs.microsoft.com/azure-sql/public-preview-of-vector-indexing-in-azure-sql-db-azure-sql-mi-and-sql-database-in-microsoft-fabric/)
+
+### Hybrid Search
+
+The Python sample in the [Hybrid-Search](./Hybrid-Search/) folder shows how to combine Fulltext search in Azure SQL database with BM25 ranking and cosine similarity ranking to do hybrid search.
+
+### Semantic Reranking Vector Search
+
+Rerank models sort text inputs by semantic relevance to a specified query. They are often used to sort search results returned from an existing search solution. A sample using a semantic re-ranker to improve the output of vector search can be found here: [Semantic-Reranking](./Semantic-Reranking).
+
+### Retrieval Augmented Generation
+
+The RAG pattern is a powerful way to generate text using a pre-trained language model and a retrieval mechanism. The [Retrieval Augmented Generation](./Retrieval-Augmented-Generation) folder contains a sample that demonstrates how to use the RAG pattern with Azure SQL and Azure OpenAI, using Python notebooks.
 
 #### DiskANN and Hybrid Search
 
