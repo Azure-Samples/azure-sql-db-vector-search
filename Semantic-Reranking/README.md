@@ -43,7 +43,7 @@ FROM VECTOR_SEARCH(
 
 ### Step 2: Prepare Re-ranker Payload
 
-The results are formatted into a JSON payload compatible with the [Cohere Rerank API](https://docs.cohere.com/docs/rerank-overview):
+The results are formatted into a JSON payload compatible with the [Cohere Rerank API](https://docs.cohere.com/docs/rerank-overview) ("we recommend formatting them as YAML strings"). Each document is represented as a string with an ID and content:
 
 ```sql
 DECLARE @documents JSON = (
