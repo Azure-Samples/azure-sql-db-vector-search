@@ -136,6 +136,7 @@ LEFT JOIN
 ```
 
 This approach:
+
 1. Uses `OPENJSON` to parse the results array from the response
 2. Uses `JSON_VALUE` with a dynamic path expression `$[' || [index] || ']'` to retrieve the original document at the specified index
 3. Uses `REGEXP_SUBSTR` to extract the property ID from the YAML-formatted document string
@@ -173,6 +174,7 @@ Vector similarity search is fast and efficient for retrieving semantically simil
 | [00-setup.sql](00-setup.sql) | Database credential setup for external REST endpoint |
 | [01-credentials.sql](01-credentials.sql) | Credential configuration |
 | [02-rerank.sql](02-rerank.sql) | Main re-ranking demonstration script |
+| [test.http](test.http) | Sample HTTP request for testing the Cohere rerank API |
 
 ## References
 
