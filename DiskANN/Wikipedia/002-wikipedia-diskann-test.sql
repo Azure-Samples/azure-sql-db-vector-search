@@ -1,5 +1,5 @@
 /*
-	This script requires SQL Server 2025 RC0
+	This script requires SQL Server 2025
 */
 
 use WikipediaTest

@@ -2,8 +2,6 @@
     Test the new helf-precision support for vectors
 	By converting existing single-precision vectors to half-precision vectors
 	and then do a test run using both to see if there are any differences in the outcome
-
-	This script requires SQL Server 2025 RC1
 */
 use WikipediaTest
 go
