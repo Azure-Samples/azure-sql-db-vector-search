@@ -1,9 +1,5 @@
 /*
-    Run Hybrid Search using Vector Search and FullText Search and then 
-    using Reciprocal Ranking Fusion to calculate the final rank score
-
-    Results are saved into dbo.wikipedia_articles_search_results so that they can be reused
-    in the next script
+    Re-Rank results generated in the previous script using CoHere semnatic re-ranker
 */
 -- Uncomment if using SQL Server 2025
 --use WikipediaTest
