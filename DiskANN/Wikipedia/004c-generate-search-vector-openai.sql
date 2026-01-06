@@ -5,6 +5,9 @@
 	embeddings for the requested text. Make sure to have an OpenAI "ada2-text-embedding" 
 	model deployed in OpenAI o Azure OpenAI. 
 */
+-- Uncomment if using SQL Server 2025
+--use WikipediaTest
+--go
 
 -- Create database credentials to store OpenAI credentials
 -- It is recommended to use Managed Identity, as explained here: 

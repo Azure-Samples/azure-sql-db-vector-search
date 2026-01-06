@@ -1,5 +1,6 @@
 -- Uncomment if using SQL Server 2025
--- use WikipediaTest
+--use WikipediaTest
+--go
 
 /*
 	Cleanup if needed

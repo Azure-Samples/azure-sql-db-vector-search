@@ -1,5 +1,7 @@
 -- Uncomment if using SQL Server 2025
--- use WikipediaTest
+--use WikipediaTest
+--go
+
 
 /*
 	Create database scoped credential and external data source.
