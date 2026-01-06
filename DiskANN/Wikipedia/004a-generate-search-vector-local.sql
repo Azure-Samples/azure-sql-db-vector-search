@@ -3,9 +3,8 @@
 	
 	The following code loads a pre-generated embedding for the text
 	"The foundation series by Isaac Asimov" using the "ada2-text-embedding" model
-	Uncomment the following text if you don't have access to a OpenAI model,
-	otherwise it is recommended to use the new "ai_generate_embedding" function
-	by using the code in the file '004c-generate-search-vector-openai.sql'
+	in case if you don't have access to a OpenAI model,  it is recommended 
+	to use the new "ai_generate_embedding" function	by using the code in the file '004c-generate-search-vector-openai.sql'
 */
 use WikipediaTest
 go
