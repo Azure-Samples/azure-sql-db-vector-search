@@ -1,5 +1,11 @@
 # Approximate Nearest Neighbor Search
 
+## Quickstart
+
+The quickstart is the simplest way to get started with DiskANN in SQL Server. It doesn't require any external resource and it is great to start to get familiar with the DiskANN syntax and capabilities. Once you are familiar with the quickstart, you can explore the Wikipedia sample in this folder that provides a complete end-to-end example.
+
+## Wikipedia Sample Dataset
+
 SQL Server 2025 introduces a new `VECTOR_SEARCH` function that allows you to perform approximate nearest neighbor search using the DiskANN algorithm. This function is designed to work with vector columns in SQL Server, enabling efficient similarity search on high-dimensional data.
 
 The samples in this folder demonstrate how to use the `VECTOR_SEARCH` function with DiskANN. The samples include:
