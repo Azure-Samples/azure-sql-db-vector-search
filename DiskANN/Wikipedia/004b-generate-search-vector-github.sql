@@ -10,12 +10,9 @@
 use WikipediaTest
 go
 
--- Enable external rest endpoint used by sp_invoke_external_rest_endpoint procedure
-exec sp_configure 'external rest endpoint enabled', 1
-reconfigure
-go
-
-drop table if exists dbo.wikipedia_search_vectors
+-- Save embeddings for future use
+drop table if exists dbo.wikipedia_search_vectors;
+create table dbo.wikipedia_search_vectors (id int primary key, q nvarchar(max), v vector(1536))
 go
 
 -- Download pre-generated search vector from GitHub
@@ -25,9 +22,17 @@ exec sp_invoke_external_rest_endpoint
 	@method = 'GET',
 	@response = @response output
 
-declare @qv vector(1536) = json_query(@response, '$.result."embedding-vector"')
-drop table if exists #t;
-create table #t (v vector(1536));
-insert into #t values (@qv);
-select * from #t;
+declare @j json = json_query(@response, '$.result')
+
+insert into dbo.wikipedia_search_vectors (id, q, v) 
+select 1, * from openjson(@j) with 
+(
+	[q] nvarchar(max) '$."source-text"',
+	[v] nvarchar(max) '$."embedding-vector"' as json
+)
+go
+
+select * from dbo.wikipedia_search_vectors;
+go
+
 
