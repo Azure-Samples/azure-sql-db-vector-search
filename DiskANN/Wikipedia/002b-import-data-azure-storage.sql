@@ -18,7 +18,7 @@ create external data source [sample_data]
 with 
 ( 
 	type = blob_storage,
- 	location = 'https://dmstore2.blob.core.windows.net/sample-data/',
+ 	location = 'https://<account>.blob.core.windows.net/sample-data/',
 	credential = [sample_data]
 );
 go
