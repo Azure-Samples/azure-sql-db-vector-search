@@ -8,6 +8,7 @@ The samples in this folder demonstrate how to use the `VECTOR_SEARCH` function w
 - Creating a approximate vector index on the table using `CREATE VECTOR INDEX` statement.
 - Performing approximate nearest neighbor search using the `VECTOR_SEARCH` function.
 - Performing hybrid search using the `VECTOR_SEARCH` function along with full-text search.
+- Semantic Reranking using Cohere rerank model via `sp_invoke_external_rest_endpoint` function. For more details on semantic reranking, refer to the [Semantic Reranking Sample](../SemanticReranking/README.md).s
 - Use Half-Precision floating points to store embeddings to have a more compact representation of vectors.
 - Use the Vectorizer to generate embeddings for text data.
 
