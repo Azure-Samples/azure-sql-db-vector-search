@@ -3,7 +3,10 @@
 */
 
 -- Create database if it doesn't exists yet
-
+if db_id('WikipediaTest') is null begin
+	create database WikipediaTest
+end
+go
 
 -- Use sample database
 use WikipediaTest
