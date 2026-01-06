@@ -6,14 +6,15 @@
     in the next script
 */
 -- Uncomment if using SQL Server 2025
--- use WikipediaTest
+--use WikipediaTest
+--go
 
-if not exists(select * from sys.database_scoped_credentials where [name] = 'https://dm-open-ai-3.services.ai.azure.com/providers/cohere/v2/rerank')
+if not exists(select * from sys.database_scoped_credentials where [name] = 'https://<endpoint>.services.ai.azure.com/providers/cohere/v2/rerank')
 begin
-    create database scoped credential [https://dm-open-ai-3.services.ai.azure.com/providers/cohere/v2/rerank]
-    with identity = 'Managed Identity', secret = '{"resourceid":"https://cognitiveservices.azure.com"}';
+    create database scoped credential [https://<endpoint>.services.ai.azure.com/providers/cohere/v2/rerank]
+    --with identity = 'Managed Identity', secret = '{"resourceid":"https://cognitiveservices.azure.com"}';
 	--or
-	--with identity = 'HTTPEndpointHEader', secret = '{"api-key":"<api-key>"}';
+	with identity = 'HTTPEndpointHeaders', secret = '{"api-key":"<api-key>"}';
 end
 go
 
@@ -34,8 +35,8 @@ DECLARE @payload JSON = JSON_OBJECT(
 DECLARE @response NVARCHAR(MAX);
 DECLARE @dummy NVARCHAR(MAX) = CAST(@payload AS NVARCHAR(MAX))
 EXEC sp_invoke_external_rest_endpoint
-    @url = 'https://dm-open-ai-3.services.ai.azure.com/providers/cohere/v2/rerank',
-    @credential = [https://dm-open-ai-3.services.ai.azure.com/providers/cohere/v2/rerank],
+    @url = 'https://<endpoint>.services.ai.azure.com/providers/cohere/v2/rerank',
+    @credential = [https://<endpoint>.services.ai.azure.com/providers/cohere/v2/rerank],
     @payload = @dummy ,
     @response = @response OUTPUT
 ;

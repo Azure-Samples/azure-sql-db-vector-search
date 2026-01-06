@@ -1,5 +1,6 @@
 -- Uncomment if using SQL Server 2025
--- use WikipediaTest
+--use WikipediaTest
+--go
 
 if not exists(select * from sys.fulltext_catalogs where [name] = 'FullTextCatalog')
 begin

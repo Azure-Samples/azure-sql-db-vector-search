@@ -1,5 +1,6 @@
 -- Uncomment if using SQL Server 2025
--- use WikipediaTest
+--use WikipediaTest
+--go
 
 /*
 	Import data reading it from a local file. Usable only with SQL Server 2025 

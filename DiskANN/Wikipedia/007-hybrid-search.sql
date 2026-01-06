@@ -6,7 +6,8 @@
     in the next script
 */
 -- Uncomment if using SQL Server 2025
--- use WikipediaTest
+--use WikipediaTest
+--go
 
 set statistics time on
 set statistics io on
