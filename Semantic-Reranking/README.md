@@ -10,6 +10,10 @@ This sample uses the **SemanticShores** database, a sample database created and 
 
 > **Note for Azure SQL Database users:** The SemanticShores database is provided as a backup file (.bak), which cannot be directly restored to Azure SQL Database. To use this sample with Azure SQL DB, you must first restore the backup to SQL Server 2025, then export it as a DACPAC, and finally import the DACPAC into Azure SQL Database.
 
+## Alternative Dataset
+
+If you prefer starting with something simpler, that can be easily created in Azure SQL Database, you can use the [DiskANN sample](../DiskANN) which uses the Wikipedia sample dataset.
+
 ## Prerequisites
 
 - Azure SQL Database or SQL Server 2025
