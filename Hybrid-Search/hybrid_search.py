@@ -36,7 +36,8 @@ if __name__ == '__main__':
         
         for id, (content, embedding) in enumerate(zip(sentences, embeddings)):
             cursor.execute(f"""
-                INSERT INTO dbo.documents (id, content, embedding) VALUES (?, ?, CAST(? AS VECTOR(384)));
+                INSERT INTO dbo.documents (id, content, embedding)
+                VALUES (?, ?, CAST(CAST(? as NVARCHAR(MAX)) AS VECTOR(384)));
             """,
             id,
             content, 
@@ -60,7 +61,7 @@ if __name__ == '__main__':
         results  = cursor.execute(f"""
             DECLARE @k INT = ?;
             DECLARE @q NVARCHAR(1000) = ?;
-            DECLARE @v VECTOR(384) = CAST(? AS VECTOR(384));
+            DECLARE @v VECTOR(384) = CAST(CAST(? as NVARCHAR(MAX)) AS VECTOR(384));
             WITH keyword_search AS (
                 SELECT TOP(@k)
                     id, 
