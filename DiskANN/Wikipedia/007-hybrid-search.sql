@@ -45,20 +45,19 @@ with keyword_search as (
 ),
 semantic_search as
 (
-    select top(@k)
+    select top(@k) 
         id, 
         rank() over (order by cosine_distance) as [rank]
     from
         (
-            select top(@k)
+            select top(@k) with approximate
 	            t.id, s.distance as cosine_distance
             from
 	            vector_search(
 		            table = [dbo].[wikipedia_articles_embeddings] as t, 
 		            column = [content_vector], 
 		            similar_to = @v, 
-		            metric = 'cosine', 
-		            top_n = @k
+		            metric = 'cosine'
 	        ) as s
             order by cosine_distance
         ) as similar_documents
