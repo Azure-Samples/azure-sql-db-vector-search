@@ -9,7 +9,7 @@ select db_id(), @@spid
 go
 
 --- Create Indexes 
---- (with 16 vCores, creation time is expected to be 30 seconds for each index)
+--- (with 16 vCores, creation time is expected to be 12 seconds for each index)
 --- Monitor index creation progress using:
 --- select session_id, status, command, percent_complete from sys.dm_exec_requests where session_id = <session id>
 create vector index vec_idx 
@@ -23,7 +23,8 @@ with (metric = 'cosine', type = 'diskann');
 go
 
 -- View created vector indexes
-select * from sys.vector_indexes
+select * from sys.vector_indexes 
+where object_id = object_id('dbo.wikipedia_articles_embeddings')
 go
 
 -- Enable io statistics
