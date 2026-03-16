@@ -22,6 +22,7 @@ go
 
 -- View created vector indexes
 select * from sys.vector_indexes
+where object_id = object_id('dbo.wikipedia_articles_embeddings')
 go
 
 -- Enable io statistics
