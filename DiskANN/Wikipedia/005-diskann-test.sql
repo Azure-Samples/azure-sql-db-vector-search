@@ -9,19 +9,21 @@ select db_id(), @@spid
 go
 
 --- Create Indexes 
---- (with 16 vCores, creation time is expected to be 30 seconds for each index)
+--- (with 16 vCores, creation time is expected to be 12 seconds for each index)
 --- Monitor index creation progress using:
 --- select session_id, status, command, percent_complete from sys.dm_exec_requests where session_id = <session id>
-create vector index vec_idx on [dbo].[wikipedia_articles_embeddings]([title_vector]) 
+create vector index vec_idx 
+on [dbo].[wikipedia_articles_embeddings]([title_vector]) 
 with (metric = 'cosine', type = 'diskann'); 
 go
 
-create vector index vec_idx2 on [dbo].[wikipedia_articles_embeddings]([content_vector]) 
+create vector index vec_idx2 
+on [dbo].[wikipedia_articles_embeddings]([content_vector]) 
 with (metric = 'cosine', type = 'diskann'); 
 go
 
 -- View created vector indexes
-select * from sys.vector_indexes
+select * from sys.vector_indexes 
 where object_id = object_id('dbo.wikipedia_articles_embeddings')
 go
 
@@ -33,17 +35,16 @@ go
 	RUN ANN (Approximate) VECTOR SEARCH
 */
 declare @qv vector(1536) = (select v from dbo.wikipedia_search_vectors where id = 1);
-select 
+select top(50) with approximate
 	t.id, s.distance, t.title
 from
 	vector_search(
 		table = [dbo].[wikipedia_articles_embeddings] as t, 
 		column = [content_vector], 
 		similar_to = @qv, 
-		metric = 'cosine', 
-		top_n = 50
+		metric = 'cosine'
 	) as s
-order by s.distance, title;
+order by s.distance;
 go
 
 /*
@@ -62,17 +63,16 @@ declare @n int = 100;
 declare @qv vector(1536) = (select v from dbo.wikipedia_search_vectors where id = 1);
 with cteANN as
 (
-	select top (@n)
+	select top (@n) with approximate
 		t.id, s.distance, t.title
 	from
 		vector_search(
 			table = [dbo].[wikipedia_articles_embeddings] as t, 
 			column = [content_vector], 
 			similar_to = @qv, 
-			metric = 'cosine', 
-			top_n = @n
+			metric = 'cosine' 
 		) as s
-	order by s.distance, id
+	order by s.distance
 ),
 cteKNN as
 (
