@@ -199,7 +199,7 @@ VALUES (
     N'Author 11',
     AI_GENERATE_EMBEDDINGS(
         N'Breaking: Major Advances in Vector Database Technology. This article discusses vector databases, semantic search, and DiskANN.' 
-        USE MODEL SalesLT_AOAI_Embeddings
+        USE MODEL AIEmbeddings
     )
 );
 GO
