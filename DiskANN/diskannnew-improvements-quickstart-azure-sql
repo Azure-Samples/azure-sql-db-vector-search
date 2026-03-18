@@ -1,0 +1,609 @@
+
+-- ============================================================================
+-- DiskANN Vector Index Search Quickstart with Azure OpenAI Embeddings
+-- Demonstrates New Improvements : Index creation, DML support, Iterative filtering, ANN vs KNN
+--Notes:
+  -- This script is intended for demos, docs, and samples.
+  -- Do not hard‑code secrets in production.
+
+--Run this quick check to see if your region has the new version:
+-- Check if the new DMV exists
+SELECT OBJECT_ID('sys.dm_db_vector_indexes') AS new_dmv_available;
+
+--If this returns NULL, your region hasn't received the deployment yet
+--If it returns a number, you're good to go!
+
+
+-- ============================================================================
+-- STEP 1: Setup Database Credential and External Model
+-- ============================================================================
+
+-- Create master key if it doesn't exist
+IF NOT EXISTS(SELECT * FROM sys.symmetric_keys WHERE [name] = '##MS_DatabaseMasterKey##')
+BEGIN
+    CREATE MASTER KEY ENCRYPTION BY PASSWORD = N'<USE A STRONG PASSWORD>';
+END
+GO
+
+-- Create database scoped credential with Azure OpenAI endpoint
+-- Replace <yourendpoint> with your Azure OpenAI endpoint name
+-- Replace <YourKey> with your Azure OpenAI API key
+
+CREATE DATABASE SCOPED CREDENTIAL [https://<yourendpoint>.openai.azure.com/]
+    WITH IDENTITY = 'HTTPEndpointHeaders', 
+    SECRET = '{"api-key":"<YourKey>"}';
+GO
+
+-- Create external model for embeddings
+-- Replace <yourdeploymentname> and <yourmodelname> with your deployment details
+DROP EXTERNAL MODEL IF EXISTS AIEmbeddings;
+GO
+
+
+-- Replace MODEL with the choice of your embedding model and LOCATION with the URL from the Azure AI Foundry
+CREATE EXTERNAL MODEL AIEmbeddings
+WITH (
+    LOCATION = 'https://<yourdeploymentname>.openai.azure.com/openai/deployments/<yourmodelname>/embeddings?api-version=<apiversion>',
+    API_FORMAT = 'Azure OpenAI',
+    MODEL_TYPE = EMBEDDINGS,
+    MODEL = 'text-embedding-3-small',
+    CREDENTIAL = [https://<yourdeploymentname>.openai.azure.com/]
+);
+GO
+
+-- ============================================================================
+-- STEP 2: Create Table with Vector Column
+-- ============================================================================
+
+DROP TABLE IF EXISTS dbo.Articles;
+GO
+
+CREATE TABLE dbo.Articles
+(
+    id INT PRIMARY KEY,
+    title NVARCHAR(100),
+    content NVARCHAR(MAX),
+    category NVARCHAR(50),
+    publish_date DATE,
+    author NVARCHAR(100),
+    embedding VECTOR(1536)  -- We are using text-embedding-3-small produces 1536 dimensions
+);
+GO
+
+-- ============================================================================
+-- STEP 3: Insert 100 Rows with Generated Embeddings
+-- Minimum 100 rows required for creating vector index
+-- ============================================================================
+
+INSERT INTO dbo.Articles (id, title, content, category, publish_date, author, embedding)
+SELECT
+    s.value AS id,
+    CASE 
+        WHEN s.value % 5 = 0 THEN N'Machine Learning Article ' + CAST(s.value AS NVARCHAR(10))
+        WHEN s.value % 5 = 1 THEN N'Quantum Computing Research ' + CAST(s.value AS NVARCHAR(10))
+        WHEN s.value % 5 = 2 THEN N'Database Systems Study ' + CAST(s.value AS NVARCHAR(10))
+        WHEN s.value % 5 = 3 THEN N'Cloud Architecture Guide ' + CAST(s.value AS NVARCHAR(10))
+        ELSE N'Artificial Intelligence Overview ' + CAST(s.value AS NVARCHAR(10))
+    END AS title,
+    N'This is the detailed content for article ' + CAST(s.value AS NVARCHAR(10)) +
+    N'. It explores advanced topics in computer science and technology.' AS content,
+    CASE 
+        WHEN s.value % 3 = 0 THEN N'Technology'
+        WHEN s.value % 3 = 1 THEN N'Research'
+        ELSE N'Tutorial'
+    END AS category,
+    DATEADD(DAY, -s.value, CAST(GETDATE() AS DATE)) AS publish_date,
+    N'Author ' + CAST((s.value % 10) + 1 AS NVARCHAR(10)) AS author,
+    AI_GENERATE_EMBEDDINGS(
+        CONCAT(
+            CASE 
+                WHEN s.value % 5 = 0 THEN N'Machine Learning'
+                WHEN s.value % 5 = 1 THEN N'Quantum Computing'
+                WHEN s.value % 5 = 2 THEN N'Database Systems'
+                WHEN s.value % 5 = 3 THEN N'Cloud Architecture'
+                ELSE N'Artificial Intelligence'
+            END,
+            N' article content'
+        )
+        USE MODEL AIEmbeddings
+    ) AS embedding
+FROM GENERATE_SERIES(1, 100) AS s;
+
+-- Verify data insertion
+SELECT COUNT(*) AS TotalArticles FROM dbo.Articles;
+SELECT TOP 5 id, title, category, author FROM dbo.Articles ORDER BY id;
+GO
+
+-- ============================================================================
+-- STEP 4: Create Vector Index
+-- ============================================================================
+
+CREATE VECTOR INDEX idx_articles_embedding 
+    ON dbo.Articles(embedding)
+    WITH (TYPE = 'DISKANN', METRIC = 'cosine');
+GO
+
+-- Verify index creation and check version
+SELECT 
+    i.name AS index_name,
+    t.name AS table_name,
+    JSON_VALUE(v.build_parameters, '$.Version') AS index_version,
+    CASE 
+        WHEN JSON_VALUE(v.build_parameters, '$.Version') >= '3' 
+        THEN 'Latest version - has all new features'
+        ELSE 'Earlier version'
+    END AS version_status
+FROM sys.vector_indexes AS v
+    INNER JOIN sys.indexes AS i ON v.object_id = i.object_id AND v.index_id = i.index_id
+    INNER JOIN sys.tables AS t ON v.object_id = t.object_id
+WHERE t.name = 'Articles';
+GO
+
+-- ============================================================================
+-- STEP 5: Basic Vector Search (ANN with DiskANN)
+-- ============================================================================
+
+DECLARE @query_text NVARCHAR(MAX) = N'machine learning algorithms and neural networks';
+DECLARE @qv VECTOR(1536) = AI_GENERATE_EMBEDDINGS(@query_text USE MODEL AIEmbeddings);
+
+-- Uses approximate nearest neighbor (ANN) search with DiskANN index
+SELECT TOP (10) WITH APPROXIMATE
+    t.id,
+    t.title,
+    t.category,
+    s.distance
+FROM VECTOR_SEARCH(
+    TABLE = dbo.Articles AS t,
+    COLUMN = embedding,
+    SIMILAR_TO = @qv,
+    METRIC = 'cosine'
+) AS s
+ORDER BY s.distance;
+GO
+
+-- ============================================================================
+-- STEP 6: Demonstrate DML Support
+-- Tables are no longer read-only after creating vector index!
+-- ============================================================================
+
+-- First, do a baseline search for "vector database technology"
+PRINT 'BEFORE DML: Searching for vector database content...';
+DECLARE @search1 VECTOR(1536) = AI_GENERATE_EMBEDDINGS(
+    N'vector database technology advancements' 
+    USE MODEL AIEmbeddings
+);
+
+SELECT TOP (5) WITH APPROXIMATE
+    t.id,
+    t.title,
+    s.distance
+FROM VECTOR_SEARCH(
+    TABLE = dbo.Articles AS t,
+    COLUMN = embedding,
+    SIMILAR_TO = @search1,
+    METRIC = 'cosine'
+) AS s
+ORDER BY s.distance;
+-- Note the results - article ID 101 doesn't exist yet
+GO
+
+-- NOW INSERT: Add article about vector databases
+PRINT 'INSERTING: New article about vector databases...';
+INSERT INTO dbo.Articles (id, title, content, category, publish_date, author, embedding)
+VALUES (
+    101,
+    N'Breaking: Major Advances in Vector Database Technology',
+    N'This article discusses cutting-edge developments in vector databases, semantic search, and DiskANN indexing for AI applications.',
+    N'Technology',
+    GETDATE(),
+    N'Author 11',
+    AI_GENERATE_EMBEDDINGS(
+        N'Breaking: Major Advances in Vector Database Technology. This article discusses vector databases, semantic search, and DiskANN.' 
+        USE MODEL AIEmbeddings
+    )
+);
+GO
+
+-- ============================================================================
+-- STEP 6B: Verify DML Changes Appear in Vector Search Results
+-- ============================================================================
+
+-- Search again - the new article should appear!
+PRINT 'AFTER INSERT: Searching again for vector database content...';
+DECLARE @search2 VECTOR(1536) = AI_GENERATE_EMBEDDINGS(
+    N'vector database technology advancements' 
+    USE MODEL AIEmbeddings
+);
+
+SELECT TOP (5) WITH APPROXIMATE
+    t.id,
+    t.title,
+    s.distance
+FROM VECTOR_SEARCH(
+    TABLE = dbo.Articles AS t,
+    COLUMN = embedding,
+    SIMILAR_TO = @search2,
+    METRIC = 'cosine'
+) AS s
+ORDER BY s.distance;
+-- Article ID 101 now appears in results (likely at the top due to semantic relevance!)
+-- This proves INSERT is immediately reflected in search results
+GO
+
+
+
+-- NOW UPDATE: Change article 101 to be about something completely different
+PRINT 'UPDATING: Changing article 101 to be about quantum computing...';
+DECLARE @new_embedding VECTOR(1536) = AI_GENERATE_EMBEDDINGS(
+    N'Advanced Quantum Computing Applications in Cryptography' 
+    USE MODEL AIEmbeddings
+);
+
+UPDATE dbo.Articles
+SET title = N'Advanced Quantum Computing Applications',
+    content = N'This article explores quantum computing, quantum cryptography, and quantum algorithms.',
+    embedding = @new_embedding
+WHERE id = 101;
+GO
+
+-- Search for vector databases again - article 101 should drop out of results
+PRINT 'AFTER UPDATE: Searching for vector database content...';
+DECLARE @search3 VECTOR(1536) = AI_GENERATE_EMBEDDINGS(
+    N'vector database technology advancements' 
+    USE MODEL AIEmbeddings
+);
+
+SELECT TOP (5) WITH APPROXIMATE
+    t.id,
+    t.title,
+    s.distance
+FROM VECTOR_SEARCH(
+    TABLE = dbo.Articles AS t,
+    COLUMN = embedding,
+    SIMILAR_TO = @search3,
+    METRIC = 'cosine'
+) AS s
+ORDER BY s.distance;
+-- Article ID 101 no longer appears (or has much higher distance)
+-- because it's now about quantum computing, not vector databases
+GO
+
+-- Search for quantum computing - article 101 should appear now!
+PRINT 'AFTER UPDATE: Searching for quantum computing content...';
+DECLARE @search4 VECTOR(1536) = AI_GENERATE_EMBEDDINGS(
+    N'quantum computing cryptography algorithms' 
+    USE MODEL AIEmbeddings
+);
+
+SELECT TOP (5) WITH APPROXIMATE
+    t.id,
+    t.title,
+    s.distance
+FROM VECTOR_SEARCH(
+    TABLE = dbo.Articles AS t,
+    COLUMN = embedding,
+    SIMILAR_TO = @search4,
+    METRIC = 'cosine'
+) AS s
+ORDER BY s.distance;
+-- Article ID 101 now appears in quantum computing search!
+-- This proves UPDATE changes the vector index correctly
+GO
+
+-- NOW DELETE: Remove article 101
+PRINT 'DELETING: Removing article 101...';
+DELETE FROM dbo.Articles WHERE id = 101;
+GO
+
+-- Search for quantum computing again - article 101 should be gone
+PRINT 'AFTER DELETE: Searching for quantum computing content...';
+DECLARE @search5 VECTOR(1536) = AI_GENERATE_EMBEDDINGS(
+    N'quantum computing cryptography algorithms' 
+    USE MODEL AIEmbeddings
+);
+
+SELECT TOP (5) WITH APPROXIMATE
+    t.id,
+    t.title,
+    s.distance
+FROM VECTOR_SEARCH(
+    TABLE = dbo.Articles AS t,
+    COLUMN = embedding,
+    SIMILAR_TO = @search5,
+    METRIC = 'cosine'
+) AS s
+ORDER BY s.distance;
+-- Article ID 101 is completely gone from results
+-- This proves DELETE removes rows from vector search immediately
+GO
+
+-- ============================================================================
+-- VERIFICATION SUMMARY
+-- ============================================================================
+-- ✅ INSERT: New rows appear immediately in vector search results
+-- ✅ UPDATE: Changed embeddings immediately affect search relevance
+-- ✅ DELETE: Removed rows disappear immediately from search results
+--
+-- All DML operations work seamlessly with the vector index!
+-- No need to drop/recreate the index or run maintenance commands.
+-- The background maintenance process handles everything automatically.
+-- ============================================================================
+
+-- ============================================================================
+-- STEP 7: Observe Background Maintenance from sys.dm_db_vector_indexes
+-- ============================================================================
+
+SELECT 
+    OBJECT_NAME(object_id) AS table_name,
+    approximate_staleness_percent,
+    last_background_task_succeeded
+FROM sys.dm_db_vector_indexes
+WHERE OBJECT_NAME(object_id) = 'Articles';
+GO
+
+-- What you observed:
+--
+-- 1. DML operations (INSERT/UPDATE/DELETE) commit immediately
+-- 2. Changes are visible in search results IMMEDIATELY (no waiting!)
+-- 3. approximate_staleness_percent increases briefly after DML
+-- 4. Background task processes changes asynchronously
+-- 5. Staleness decreases as background task completes
+-- 6. last_background_task_processed_* counters increment
+
+-- Key insight: Queries work perfectly even when staleness > 0!
+-- - Recent changes are visible immediately
+-- - Staleness only affects ranking optimization, not completeness
+-- - Background process keeps the index optimized over time
+
+-- ============================================================================
+-- STEP 8: Iterative Filtering - The New Way
+-- Predicates applied DURING search, not after
+-- ============================================================================
+
+-- OLD WAY: Had to over-fetch and hope enough matched
+-- NEW WAY (Latest version): Predicates applied during search, get exact count
+
+PRINT '=== Iterative Filtering Demo ===';
+DECLARE @query_text NVARCHAR(MAX) = N'quantum computing algorithms';
+DECLARE @qv VECTOR(1536) = AI_GENERATE_EMBEDDINGS(@query_text USE MODEL AIEmbeddings);
+
+-- With iterative filtering: Get exactly 10 Technology articles
+-- Predicates are evaluated DURING the vector search, not after!
+SELECT TOP (10) WITH APPROXIMATE
+    t.id,
+    t.title,
+    t.category,
+    t.author,
+    s.distance
+FROM VECTOR_SEARCH(
+    TABLE = dbo.Articles AS t,
+    COLUMN = embedding,
+    SIMILAR_TO = @qv,
+    METRIC = 'cosine'
+) AS s
+WHERE t.category = 'Technology'
+  AND t.publish_date > DATEADD(DAY, -50, GETDATE())
+ORDER BY s.distance;
+-- Result: Exactly 10 Technology articles (if they exist) published in last 50 days
+-- No need to guess TOP_N values and over-fetch!
+GO
+
+-- ============================================================================
+-- STEP 9: Multiple Predicates with Iterative Filtering
+-- ============================================================================
+
+PRINT '=== Multiple Predicates - Iterative Filtering ===';
+DECLARE @query_text NVARCHAR(MAX) = N'cloud architecture patterns';
+DECLARE @qv VECTOR(1536) = AI_GENERATE_EMBEDDINGS(@query_text USE MODEL AIEmbeddings);
+
+SELECT TOP (5) WITH APPROXIMATE
+    t.id,
+    t.title,
+    t.category,
+    t.author,
+    t.publish_date,
+    s.distance
+FROM VECTOR_SEARCH(
+    TABLE = dbo.Articles AS t,
+    COLUMN = embedding,
+    SIMILAR_TO = @qv,
+    METRIC = 'cosine'
+) AS s
+WHERE t.category IN ('Technology', 'Research')
+  AND t.author LIKE 'Author%'
+  AND t.publish_date > DATEADD(DAY, -30, GETDATE())
+ORDER BY s.distance;
+-- Predicates applied iteratively during search
+-- Guaranteed to get 5 results (if qualifying rows exist)
+-- Engine keeps searching until 5 rows match all predicates
+GO
+
+-- ============================================================================
+-- STEP 10: Intelligent Optimizer
+-- ============================================================================
+
+-- The optimizer intelligently chooses between:
+-- - DiskANN (ANN): Fast approximate search using vector index graph
+-- - KNN: Exact nearest neighbor search (slower but 100% accurate)
+--
+-- WITH APPROXIMATE tells optimizer: "I'm OK with approximate results"
+-- Optimizer then decides: DiskANN or KNN depending on data/predicates
+
+-- Scenario 1: Pure vector search - ANN with DiskANN
+PRINT '=== Scenario 1: Pure vector search (ANN) ===';
+DECLARE @qv_ann VECTOR(1536) = AI_GENERATE_EMBEDDINGS(
+    N'database performance optimization' USE MODEL AIEmbeddings
+);
+
+SELECT TOP (10) WITH APPROXIMATE  -- WITH APPROXIMATE signals intent to use ANN
+    t.id,
+    t.title,
+    s.distance
+FROM VECTOR_SEARCH(
+    TABLE = dbo.Articles AS t,
+    COLUMN = embedding,
+    SIMILAR_TO = @qv_ann,
+    METRIC = 'cosine'
+) AS s
+ORDER BY s.distance;
+-- Look for "Vector Index Seek" in execution plan (DiskANN usage)
+-- With no predicates on small dataset, may use DiskANN
+GO
+
+
+-- Scenario 2: Exact KNN search (no WITH APPROXIMATE)
+PRINT '=== Scenario 2: Exact KNN search ===';
+DECLARE @qv_knn VECTOR(1536) = AI_GENERATE_EMBEDDINGS(
+    N'database performance optimization' USE MODEL AIEmbeddings
+);
+
+SELECT TOP (10)  -- No WITH APPROXIMATE = exact KNN
+    t.id,
+    t.title,
+    s.distance
+FROM VECTOR_SEARCH(
+    TABLE = dbo.Articles AS t,
+    COLUMN = embedding,
+    SIMILAR_TO = @qv_knn,
+    METRIC = 'cosine'
+) AS s
+ORDER BY s.distance;
+-- Look for "Clustered Index Scan" or similar in plan (KNN usage)
+-- Computes exact distances for all rows, returns top 10
+GO
+
+-- ============================================================================
+-- STEP 11: Optimizer Choosing Between ANN and KNN
+-- ============================================================================
+
+-- IMPORTANT: With a small dataset (100 rows), the optimizer often chooses KNN
+-- even when you write WITH APPROXIMATE, because for small datasets exact
+-- calculation is genuinely faster than graph traversal.
+-- DiskANN shines with larger datasets (10,000+ rows).
+
+-- Scenario A: Pure vector search → Most likely to use DiskANN
+PRINT '=== Scenario A: Pure search - Likely uses DiskANN ===';
+DECLARE @qv1 VECTOR(1536) = AI_GENERATE_EMBEDDINGS(
+    N'artificial intelligence applications' USE MODEL AIEmbeddings
+);
+
+SELECT TOP (10) WITH APPROXIMATE
+    t.id,
+    t.title,
+    s.distance
+FROM VECTOR_SEARCH(
+    TABLE = dbo.Articles AS t,
+    COLUMN = embedding,
+    SIMILAR_TO = @qv1,
+    METRIC = 'cosine'
+) AS s
+ORDER BY s.distance;
+-- Check execution plan: Look for "Vector Index Seek"
+-- ✅ This query often shows DiskANN usage
+GO
+
+-- Scenario B: Search with predicates on small dataset → Optimizer may choose KNN
+PRINT '=== Scenario B: With predicates - Optimizer may choose KNN ===';
+-- Create traditional index for better performance with predicates
+CREATE NONCLUSTERED INDEX idx_articles_category 
+    ON dbo.Articles(category);
+GO
+
+DECLARE @qv2 VECTOR(1536) = AI_GENERATE_EMBEDDINGS(
+    N'machine learning technology' USE MODEL AIEmbeddings
+);
+SELECT TOP (10) WITH APPROXIMATE
+    t.id,
+    t.title,
+    t.category,
+    s.distance
+FROM VECTOR_SEARCH(
+    TABLE = dbo.Articles AS t,
+    COLUMN = embedding,
+    SIMILAR_TO = @qv2,
+    METRIC = 'cosine'
+) AS s
+WHERE t.category = 'Technology'
+ORDER BY s.distance;
+-- Check execution plan: Often shows (KNN) - No usage of DiskANN Vector Index
+-- WHY? Filtering to ~33 Technology articles out of 100, exact calculation
+-- is faster than DiskANN graph navigation at this small scale.
+-- This is the CORRECT choice by the optimizer!
+GO
+
+-- Scenario C: Highly selective predicates → Optimizer chooses KNN
+PRINT '=== Scenario C: Highly selective predicates - Uses KNN ===';
+DECLARE @qv3_selective VECTOR(1536) = AI_GENERATE_EMBEDDINGS(
+    N'quantum computing research' USE MODEL AIEmbeddings
+);
+
+SELECT TOP (5) WITH APPROXIMATE
+    t.id,
+    t.title,
+    t.category,
+    t.author,
+    s.distance
+FROM VECTOR_SEARCH(
+    TABLE = dbo.Articles AS t,
+    COLUMN = embedding,
+    SIMILAR_TO = @qv3_selective,
+    METRIC = 'cosine'
+) AS s
+WHERE t.category = 'Research'
+  AND t.author = 'Author 5'
+ORDER BY s.distance;
+-- Check execution plan: "Clustered Index Seek" (KNN)
+-- With very selective predicates (1-10 matching rows), KNN is optimal
+GO
+
+-- Scenario D: Force DiskANN with FORCE_ANN_ONLY hint
+PRINT '=== Scenario D: Force DiskANN with table hint ===';
+DECLARE @qv4_force VECTOR(1536) = AI_GENERATE_EMBEDDINGS(
+    N'cloud architecture' USE MODEL AIEmbeddings
+);
+
+SELECT TOP (10) WITH APPROXIMATE
+    t.id,
+    t.title,
+    s.distance
+FROM VECTOR_SEARCH(
+    TABLE = dbo.Articles AS t,
+    COLUMN = embedding,
+    SIMILAR_TO = @qv4_force,
+    METRIC = 'cosine'
+) AS s WITH (FORCE_ANN_ONLY)  -- Force use of DiskANN index
+ORDER BY s.distance;
+-- ✅ Check execution plan: "Vector Index Seek" (DiskANN)
+-- This proves the DiskANN index exists and works
+-- But optimizer might have chosen KNN without the hint
+GO
+
+-- ============================================================================
+-- KEY TAKEAWAYS
+-- ============================================================================
+--
+-- What you observed with this small dataset (100 rows):
+-- ✅ Pure vector search → DiskANN (graph navigation is efficient)
+-- ✅ Search with predicates → KNN (optimizer knows exact calc is faster)
+-- ✅ FORCE_ANN_ONLY → DiskANN (proves index works)
+--
+--
+-- In production with large datasets (10,000+ rows):
+-- - Pure searches → DiskANN (Significantly faster than KNN)
+-- - Iterative filtering with predicates → Uses DiskANN + traditional indexes
+-- - Highly selective predicates → May still use KNN if result set is tiny
+
+-- The optimizer automatically picks the fastest strategy based on:
+-- - Dataset size (small = KNN often faster, large = DiskANN shines)
+-- - Predicate selectivity (highly selective = KNN may be better)
+-- - Available indexes (traditional indexes help iterative filtering)
+-- - Cost estimates (optimizer compares ANN vs KNN costs)
+
+-- You write WITH APPROXIMATE, optimizer decides the execution path!
+ ============================================================================
+
+--Clean up
+DROP TABLE IF EXISTS dbo.Articles;
+GO
+
+ 
