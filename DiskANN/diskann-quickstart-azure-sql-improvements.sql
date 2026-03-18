@@ -2,17 +2,16 @@
 -- ============================================================================
 -- DiskANN Vector Index Search Quickstart with Azure OpenAI Embeddings
 -- Demonstrates New Improvements : Index creation, DML support, Iterative filtering, ANN vs KNN
---Notes:
-  -- This script is intended for demos, docs, and samples.
-  -- Do not hard‑code secrets in production.
+-- Notes:
+-- This script is intended for demos, docs, and samples.
+-- Do not hard‑code secrets in production.
 
---Run this quick check to see if your region has the new version:
+-- Run this quick check to see if your region has the new version:
 -- Check if the new DMV exists
 SELECT OBJECT_ID('sys.dm_db_vector_indexes') AS new_dmv_available;
 
---If this returns NULL, your region hasn't received the deployment yet
---If it returns a number, you're good to go!
-
+-- If this returns NULL, your region hasn't received the deployment yet
+-- If it returns a number, you're good to go!
 
 -- ============================================================================
 -- STEP 1: Setup Database Credential and External Model
@@ -28,7 +27,6 @@ GO
 -- Create database scoped credential with Azure OpenAI endpoint
 -- Replace <yourendpoint> with your Azure OpenAI endpoint name
 -- Replace <YourKey> with your Azure OpenAI API key
-
 CREATE DATABASE SCOPED CREDENTIAL [https://<yourendpoint>.openai.azure.com/]
     WITH IDENTITY = 'HTTPEndpointHeaders', 
     SECRET = '{"api-key":"<YourKey>"}';
@@ -38,7 +36,6 @@ GO
 -- Replace <yourdeploymentname> and <yourmodelname> with your deployment details
 DROP EXTERNAL MODEL IF EXISTS AIEmbeddings;
 GO
-
 
 -- Replace MODEL with the choice of your embedding model and LOCATION with the URL from the Azure AI Foundry
 CREATE EXTERNAL MODEL AIEmbeddings
@@ -229,8 +226,6 @@ ORDER BY s.distance;
 -- Article ID 101 now appears in results (likely at the top due to semantic relevance!)
 -- This proves INSERT is immediately reflected in search results
 GO
-
-
 
 -- NOW UPDATE: Change article 101 to be about something completely different
 PRINT 'UPDATING: Changing article 101 to be about quantum computing...';
