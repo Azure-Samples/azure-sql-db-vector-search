@@ -1,6 +1,6 @@
 streamlit==1.45.0
 pandas==2.2.3
-requests==2.32.3
+requests==2.33.0
 tiktoken==0.9.0
 pyodbc==5.2.0
 azure-ai-formrecognizer==3.3.3
