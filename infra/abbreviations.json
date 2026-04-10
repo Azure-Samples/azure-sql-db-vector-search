@@ -1,0 +1,8 @@
+{
+  "managedIdentityUserAssignedIdentities": "mi-",
+  "resourcesResourceGroups": "rg-",
+  "sqlServers": "sql-",
+  "sqlServersDatabases": "sqldb-",
+  "cognitiveServicesAccounts": "cog-",
+  "cognitiveServicesOpenAI": "openai-"
+}
