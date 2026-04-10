@@ -1,0 +1,26 @@
+{
+  "name": "azure-sql-vector-search-typescript",
+  "version": "1.0.0",
+  "description": "Vector search quickstart using TypeScript with Azure SQL Database",
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file .env --import tsx src/index.ts",
+    "build": "tsc",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@azure/identity": "^4.9.1",
+    "@azure/openai": "2.0.0",
+    "dotenv": "^16.5.0",
+    "openai": "^6.34.0",
+    "tedious": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
