@@ -8,7 +8,7 @@ azure-search-documents==11.6.0b3
 python-dotenv
 openai
 numpy
-pyodbc
+mssql-python
 num2words
 matplotlib
 plotly

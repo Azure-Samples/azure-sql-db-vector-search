@@ -406,3 +406,9 @@ FodyWeavers.xsd
 /DotNet/SqlClient/Properties/launchSettings Empty.json
 /DotNet/SqlClient/Properties/launchSettingsProd.json
 /DotNet/SqlClient/Properties/launchSettings.prod.json
+
+# macOS
+.DS_Store
+
+# Local session prep (VSLive 2026 · Beyond Embeddings)
+VSLive2026/

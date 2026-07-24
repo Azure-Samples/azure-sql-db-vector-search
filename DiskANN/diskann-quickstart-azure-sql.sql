@@ -9,6 +9,8 @@ CREATE TABLE dbo.Articles
 );
 
 -- Step 2: Insert sample data
+-- 10 named rows for storytelling + 90 generated rows.
+-- DiskANN requires at least 100 non-null vectors to build the index.
 INSERT INTO Articles (id, title, content, embedding)
 VALUES
 (1, 'Intro to AI', 'This article introduces AI concepts.', '[0.1, 0.2, 0.3, 0.4, 0.5]'),
@@ -23,6 +25,25 @@ VALUES
 (10, 'AI Innovations', 'Latest innovations in AI.', '[0.4, 0.7, 0.2, 0.3, 0.1]');
 GO
 
+-- Add 90 more rows with pseudo-random 5-dim vectors to satisfy the 100-row minimum for CREATE VECTOR INDEX
+INSERT INTO Articles (id, title, content, embedding)
+SELECT
+    10 + s.value AS id,
+    CONCAT(N'Article ', 10 + s.value) AS title,
+    CONCAT(N'Filler content ', 10 + s.value) AS content,
+    CAST(CONCAT('[',
+        FORMAT(ABS(CHECKSUM(NEWID())) % 1000 / 1000.0, 'N3'), ',',
+        FORMAT(ABS(CHECKSUM(NEWID())) % 1000 / 1000.0, 'N3'), ',',
+        FORMAT(ABS(CHECKSUM(NEWID())) % 1000 / 1000.0, 'N3'), ',',
+        FORMAT(ABS(CHECKSUM(NEWID())) % 1000 / 1000.0, 'N3'), ',',
+        FORMAT(ABS(CHECKSUM(NEWID())) % 1000 / 1000.0, 'N3'),
+    ']') AS VECTOR(5)) AS embedding
+FROM GENERATE_SERIES(1, 90) AS s;
+GO
+
+SELECT COUNT(*) AS row_count FROM dbo.Articles;
+GO
+
 -- Step 3: Create a vector index on the embedding column
 CREATE VECTOR INDEX vec_idx ON Articles(embedding)
 WITH (METRIC = 'Cosine', TYPE = 'DiskANN')
@@ -31,7 +52,7 @@ GO
 
 -- Step 4: Perform a vector similarity search
 DECLARE @qv VECTOR(5) = (SELECT TOP(1) embedding FROM Articles WHERE id = 1);
-SELECT
+SELECT TOP (3) WITH APPROXIMATE
     t.id,
     t.title,
     t.content,
@@ -41,36 +62,26 @@ FROM
         TABLE = Articles AS t,
         COLUMN = embedding,
         SIMILAR_TO = @qv,
-        METRIC = 'Cosine',
-        TOP_N = 3
+        METRIC = 'Cosine'
     ) AS s
-ORDER BY s.distance, t.title;
+ORDER BY s.distance;
 GO
 
 -- Step 5: View index details
 SELECT index_id, [type], [type_desc], vector_index_type, distance_metric, build_parameters FROM sys.vector_indexes WHERE [name] = 'vec_idx';
 GO
 
--- Step 6a: Data modification is disabled when DiskANN exist on a table
+-- Step 6: DML works on a live vector index (current Azure SQL / SQL Server 2025 behavior).
+-- INSERT / UPDATE / DELETE are visible in vector search results immediately;
+-- the DiskANN graph is maintained asynchronously in the background.
 INSERT INTO Articles (id, title, content, embedding)
 VALUES
-(11, 'Vectors and Embeddings', 'Everything about vectors and embeddings.', '[0.1, 0.2, 0.3, 0.4, 0.6]');
+(200, 'Vectors and Embeddings', 'Everything about vectors and embeddings.', '[0.1, 0.2, 0.3, 0.4, 0.6]');
 GO
 
--- Step 6b: Allow index to go stale
-ALTER DATABASE SCOPED CONFIGURATION 
-SET ALLOW_STALE_VECTOR_INDEX = ON
-GO
-
--- Step 6c: Data modification is now works
-INSERT INTO Articles (id, title, content, embedding)
-VALUES
-(11, 'Vectors and Embeddings', 'Everything about vectors and embeddings.', '[0.1, 0.2, 0.3, 0.4, 0.6]');
-GO
-
--- Step 7: Perform a vector similarity search, new data not visible
+-- Step 7: The new row shows up in vector search immediately
 DECLARE @qv VECTOR(5) = (SELECT TOP(1) embedding FROM Articles WHERE id = 1);
-SELECT
+SELECT TOP (3) WITH APPROXIMATE
     t.id,
     t.title,
     t.content,
@@ -80,36 +91,23 @@ FROM
         TABLE = Articles AS t,
         COLUMN = embedding,
         SIMILAR_TO = @qv,
-        METRIC = 'Cosine',
-        TOP_N = 3
-    ) AS s
-ORDER BY s.distance, t.title;
-GO
-
--- Step 8: Re-Create a vector index on the embedding column
-DROP INDEX vec_idx ON Articles;
-CREATE VECTOR INDEX vec_idx ON Articles(embedding)
-WITH (METRIC = 'Cosine', TYPE = 'DiskANN')
-ON [PRIMARY];
-GO
-
--- Step 9: Data now visible
-DECLARE @qv VECTOR(5) = (SELECT TOP(1) embedding FROM Articles WHERE id = 1);
-SELECT
-    t.id,
-    t.title,
-    t.content,
-    s.distance
-FROM
-    VECTOR_SEARCH(
-        TABLE = Articles AS t,
-        COLUMN = embedding,
-        SIMILAR_TO = @qv,
-        METRIC = 'Cosine',
-        TOP_N = 3
+        METRIC = 'Cosine'
     ) AS s
 ORDER BY s.distance;
 GO
 
--- Step 6: Clean up by dropping the table
+-- Step 8: Observe background maintenance state
+SELECT
+    OBJECT_NAME(object_id) AS table_name,
+    graph_catchup_pending_percent,
+    last_background_task_succeeded,
+    last_background_task_execution_time,
+    last_background_task_processed_inserts,
+    last_background_task_processed_deletes
+FROM sys.dm_db_vector_indexes
+WHERE OBJECT_NAME(object_id) = 'Articles';
+GO
+
+-- Step 9: Clean up
 DROP INDEX vec_idx ON Articles;
+DROP TABLE IF EXISTS dbo.Articles;

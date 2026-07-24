@@ -34,7 +34,8 @@ GO
 
 -- Create external model for embeddings
 -- Replace <yourdeploymentname> and <yourmodelname> with your deployment details
-DROP EXTERNAL MODEL IF EXISTS AIEmbeddings;
+IF EXISTS (SELECT 1 FROM sys.external_models WHERE name = 'AIEmbeddings')
+    DROP EXTERNAL MODEL AIEmbeddings;
 GO
 
 -- Replace MODEL with the choice of your embedding model and LOCATION with the URL from the Azure AI Foundry
@@ -330,8 +331,12 @@ GO
 
 SELECT 
     OBJECT_NAME(object_id) AS table_name,
-    approximate_staleness_percent,
-    last_background_task_succeeded
+    graph_catchup_pending_percent,
+    quantized_keys_used_percent,
+    last_background_task_succeeded,
+    last_background_task_execution_time,
+    last_background_task_processed_inserts,
+    last_background_task_processed_deletes
 FROM sys.dm_db_vector_indexes
 WHERE OBJECT_NAME(object_id) = 'Articles';
 GO
@@ -340,14 +345,14 @@ GO
 --
 -- 1. DML operations (INSERT/UPDATE/DELETE) commit immediately
 -- 2. Changes are visible in search results IMMEDIATELY (no waiting!)
--- 3. approximate_staleness_percent increases briefly after DML
+-- 3. graph_catchup_pending_percent tracks how much DML the background task still needs to fold into the DiskANN graph
 -- 4. Background task processes changes asynchronously
--- 5. Staleness decreases as background task completes
+-- 5. graph_catchup_pending_percent decreases as background task completes
 -- 6. last_background_task_processed_* counters increment
 
--- Key insight: Queries work perfectly even when staleness > 0!
+-- Key insight: Queries work perfectly even when graph_catchup_pending_percent > 0!
 -- - Recent changes are visible immediately
--- - Staleness only affects ranking optimization, not completeness
+-- - Pending catch-up only affects ranking optimization, not completeness
 -- - Background process keeps the index optimized over time
 
 -- ============================================================================
@@ -595,10 +600,9 @@ GO
 -- - Cost estimates (optimizer compares ANN vs KNN costs)
 
 -- You write WITH APPROXIMATE, optimizer decides the execution path!
- ============================================================================
+-- ============================================================================
 
---Clean up
+-- Clean up
 DROP TABLE IF EXISTS dbo.Articles;
 GO
 
- 
