@@ -59,7 +59,7 @@ create fulltext catalog ft_reviews_catalog as default;
 go
 
 create fulltext index on dbo.reviews (combined language 1033)
-    key index PK__reviews  -- adjust if the primary-key index has a different auto-name
+    key index PK_reviews  -- named explicitly in 000-setup.sql
     on ft_reviews_catalog
     with change_tracking auto;
 go

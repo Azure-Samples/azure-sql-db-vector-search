@@ -1,10 +1,15 @@
 """Batch-embed dbo.reviews in chunks of 50 to avoid REST endpoint timeout.
-Uses mssql-python (the native Microsoft first-party Python driver)."""
-import sys, time
+Uses mssql-python (the native Microsoft first-party Python driver).
+
+Configure via environment variables (or edit the defaults below):
+  MSSQL_SERVER    e.g. myserver.database.windows.net
+  MSSQL_DATABASE  e.g. FineFoodReviews
+"""
+import os, sys, time
 import mssql_python
 
-SERVER = "antho-test-server.database.windows.net"
-DATABASE = "VSLive2026"
+SERVER = os.getenv("MSSQL_SERVER", "<your-server>.database.windows.net")
+DATABASE = os.getenv("MSSQL_DATABASE", "FineFoodReviews")
 
 def connect():
     return mssql_python.connect(
@@ -16,7 +21,9 @@ def connect():
 conn = connect()
 cur = conn.cursor()
 
-# Set a long command timeout since AI_GENERATE_EMBEDDINGS is external
+# Lock timeout: cap how long DML on this session waits on row locks. This does
+# not control external-REST timeout for AI_GENERATE_EMBEDDINGS; that is handled
+# by retrying in the loop below.
 cur.execute("SET LOCK_TIMEOUT 60000;")
 
 start = time.time()

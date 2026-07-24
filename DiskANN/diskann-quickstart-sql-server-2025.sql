@@ -38,18 +38,19 @@ VALUES
 (10, 'AI Innovations', 'Latest innovations in AI.', '[0.4, 0.7, 0.2, 0.3, 0.1]');
 GO
 
--- Add 90 more rows with pseudo-random 5-dim vectors to satisfy the 100-row minimum for CREATE VECTOR INDEX
+-- Add 90 more rows with pseudo-random 5-dim vectors to satisfy the 100-row minimum for CREATE VECTOR INDEX.
+-- Numbers are formatted via CAST(... AS decimal(4,3)) which is locale-invariant (always '.').
 INSERT INTO Articles (id, title, content, embedding)
 SELECT
     10 + s.value AS id,
     CONCAT(N'Article ', 10 + s.value) AS title,
     CONCAT(N'Filler content ', 10 + s.value) AS content,
     CAST(CONCAT('[',
-        FORMAT(ABS(CHECKSUM(NEWID())) % 1000 / 1000.0, 'N3'), ',',
-        FORMAT(ABS(CHECKSUM(NEWID())) % 1000 / 1000.0, 'N3'), ',',
-        FORMAT(ABS(CHECKSUM(NEWID())) % 1000 / 1000.0, 'N3'), ',',
-        FORMAT(ABS(CHECKSUM(NEWID())) % 1000 / 1000.0, 'N3'), ',',
-        FORMAT(ABS(CHECKSUM(NEWID())) % 1000 / 1000.0, 'N3'),
+        CONVERT(varchar(5), CAST(ABS(CHECKSUM(NEWID())) % 1000 / 1000.0 AS decimal(4,3))), ',',
+        CONVERT(varchar(5), CAST(ABS(CHECKSUM(NEWID())) % 1000 / 1000.0 AS decimal(4,3))), ',',
+        CONVERT(varchar(5), CAST(ABS(CHECKSUM(NEWID())) % 1000 / 1000.0 AS decimal(4,3))), ',',
+        CONVERT(varchar(5), CAST(ABS(CHECKSUM(NEWID())) % 1000 / 1000.0 AS decimal(4,3))), ',',
+        CONVERT(varchar(5), CAST(ABS(CHECKSUM(NEWID())) % 1000 / 1000.0 AS decimal(4,3))),
     ']') AS VECTOR(5)) AS embedding
 FROM GENERATE_SERIES(1, 90) AS s;
 GO

@@ -1,13 +1,22 @@
-"""Load first 500 rows of Datasets/Reviews.csv into dbo.reviews on VSLive2026,
-then trigger AI_GENERATE_EMBEDDINGS server-side. Uses mssql-python (the native
-Microsoft first-party Python driver) with Entra Default auth — no token juggling."""
-import csv, sys, time
+"""Load first 500 rows of Datasets/Reviews.csv into dbo.reviews, then
+trigger AI_GENERATE_EMBEDDINGS server-side. Uses mssql-python (the native
+Microsoft first-party Python driver) with Entra Default auth — no token juggling.
+
+Configure via environment variables (or edit the defaults below):
+  MSSQL_SERVER    e.g. myserver.database.windows.net
+  MSSQL_DATABASE  e.g. FineFoodReviews
+  REVIEWS_CSV     path to Reviews.csv (defaults to ../../Datasets/Reviews.csv)
+"""
+import csv, os, sys, time
 from pathlib import Path
 import mssql_python
 
-SERVER = "antho-test-server.database.windows.net"
-DATABASE = "VSLive2026"
-CSV = Path("/Users/annahoffman/azure-sql-db-vector-search/Datasets/Reviews.csv")
+SERVER = os.getenv("MSSQL_SERVER", "<your-server>.database.windows.net")
+DATABASE = os.getenv("MSSQL_DATABASE", "FineFoodReviews")
+CSV = Path(os.getenv(
+    "REVIEWS_CSV",
+    Path(__file__).resolve().parent.parent.parent / "Datasets" / "Reviews.csv",
+))
 N_ROWS = 500
 
 def connect():

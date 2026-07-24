@@ -17,7 +17,7 @@ drop table if exists dbo.reviews;
 go
 
 create table dbo.reviews (
-    Id          int             not null primary key,
+    Id          int             not null constraint PK_reviews primary key,
     Time        bigint          null,
     ProductId   nvarchar(50)    null,
     UserId      nvarchar(50)    null,
