@@ -17,7 +17,9 @@ go
 select * from sys.fulltext_catalogs
 go
 
--- Wait ~15 seconds for FT to start and process all the documents, then
+-- Full-text population is asynchronous. On Azure SQL Hyperscale for 25000 rows
+-- it typically completes in ~30 seconds. If the count below is < 25000, wait a
+-- bit longer and re-run just this SELECT.
 waitfor delay '00:00:15'
 go
 

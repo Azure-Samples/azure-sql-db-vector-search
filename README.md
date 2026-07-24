@@ -64,6 +64,8 @@ The RAG pattern is a powerful way to generate text using a pre-trained language 
 
 Using DiskANN together with FullText enables you to do hybrid search. The [DiskANN](./DiskANN/) folder contains the file `004-wikipedia-hybrid-search.sql` that demonstrates how to use the the new `VECTOR_SEARCH` function along with `FREETEXTTABLE` to implement hybrid search with Reciprocal Rank Fusion (RRF) and BM25 ranking.
 
+The [DiskANN/FineFoodReviews](./DiskANN/FineFoodReviews/) folder contains an end-to-end hybrid-search sample over the Amazon Fine Food Reviews dataset — from CSV load and embedding generation to a side-by-side comparison of vector-only, full-text-only, and hybrid-RRF queries.
+
 ### SQL Client
 
 If you are using SQL Client directly in your applications, you can use the [SqlClient](./DotNet) folder to see how to use Native Vector Search in C#/.NET.

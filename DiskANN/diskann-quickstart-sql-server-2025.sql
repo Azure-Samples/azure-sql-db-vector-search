@@ -22,7 +22,9 @@ CREATE TABLE dbo.Articles
 );
 
 -- Step 2: Insert sample data
-INSERT INTO Articles (id, title, content, embedding)
+-- 10 named rows for storytelling + 90 generated rows.
+-- DiskANN requires at least 100 non-null vectors to build the index.
+INSERT INTO dbo.Articles (id, title, content, embedding)
 VALUES
 (1, 'Intro to AI', 'This article introduces AI concepts.', '[0.1, 0.2, 0.3, 0.4, 0.5]'),
 (2, 'Deep Learning', 'Deep learning is a subset of ML.', '[0.2, 0.1, 0.4, 0.3, 0.6]'),
@@ -36,6 +38,26 @@ VALUES
 (10, 'AI Innovations', 'Latest innovations in AI.', '[0.4, 0.7, 0.2, 0.3, 0.1]');
 GO
 
+-- Add 90 more rows with pseudo-random 5-dim vectors to satisfy the 100-row minimum for CREATE VECTOR INDEX.
+-- Numbers are formatted via CAST(... AS decimal(4,3)) which is locale-invariant (always '.').
+INSERT INTO Articles (id, title, content, embedding)
+SELECT
+    10 + s.value AS id,
+    CONCAT(N'Article ', 10 + s.value) AS title,
+    CONCAT(N'Filler content ', 10 + s.value) AS content,
+    CAST(CONCAT('[',
+        CONVERT(varchar(5), CAST(ABS(CHECKSUM(NEWID())) % 1000 / 1000.0 AS decimal(4,3))), ',',
+        CONVERT(varchar(5), CAST(ABS(CHECKSUM(NEWID())) % 1000 / 1000.0 AS decimal(4,3))), ',',
+        CONVERT(varchar(5), CAST(ABS(CHECKSUM(NEWID())) % 1000 / 1000.0 AS decimal(4,3))), ',',
+        CONVERT(varchar(5), CAST(ABS(CHECKSUM(NEWID())) % 1000 / 1000.0 AS decimal(4,3))), ',',
+        CONVERT(varchar(5), CAST(ABS(CHECKSUM(NEWID())) % 1000 / 1000.0 AS decimal(4,3))),
+    ']') AS VECTOR(5)) AS embedding
+FROM GENERATE_SERIES(1, 90) AS s;
+GO
+
+SELECT COUNT(*) AS row_count FROM dbo.Articles;
+GO
+
 -- Step 3: Create a vector index on the embedding column
 CREATE VECTOR INDEX vec_idx ON Articles(embedding)
 WITH (METRIC = 'Cosine', TYPE = 'DiskANN')
@@ -44,7 +66,7 @@ GO
 
 -- Step 4: Perform a vector similarity search
 DECLARE @qv VECTOR(5) = (SELECT TOP(1) embedding FROM Articles WHERE id = 1);
-SELECT
+SELECT TOP (3) WITH APPROXIMATE
     t.id,
     t.title,
     t.content,
@@ -54,10 +76,9 @@ FROM
         TABLE = Articles AS t,
         COLUMN = embedding,
         SIMILAR_TO = @qv,
-        METRIC = 'Cosine',
-        TOP_N = 3
+        METRIC = 'Cosine'
     ) AS s
-ORDER BY s.distance, t.title;
+ORDER BY s.distance;
 GO
 
 -- Step 5: View index details

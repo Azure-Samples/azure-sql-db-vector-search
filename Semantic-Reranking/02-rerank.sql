@@ -2,7 +2,10 @@ USE SemanticShoresDB
 GO
 
 /*
-    Run sample vector search
+    Run sample vector search (over-sample so we have enough candidates to rerank).
+    Uses the current syntax: outer TOP (N) WITH APPROXIMATE + ORDER BY distance.
+    Older samples used `TOP_N = 50` inside VECTOR_SEARCH — that hint was removed in
+    the March 2026 index version.
 */
 DECLARE @search_vector VECTOR(1536);
 SELECT @search_vector = search_vector
@@ -10,35 +13,36 @@ FROM search_phrases
 WHERE search_phrase = 'cozy bungalow with original hardwood and charm';
 
 DROP TABLE IF EXISTS #r;
-SELECT TOP 50  -- Oversample for reranking
+SELECT TOP (50) WITH APPROXIMATE
     t.property_id,
     t.listing_description,
     s.distance AS vector_distance
-INTO
-    #r
+INTO #r
 FROM VECTOR_SEARCH(
     TABLE = properties AS t,
     COLUMN = description_vector,
     SIMILAR_TO = @search_vector,
-    METRIC = 'cosine',
-    TOP_N = 50
+    METRIC = 'cosine'
 ) AS s
 ORDER BY s.distance;
 GO
 --SELECT * FROM #r ORDER BY vector_distance;
 
--- Generate payload for re-ranker, using the result returned by vector search
--- Payload formatted as per https://docs.cohere.com/docs/rerank-overview#example-with-structured-data
+-- Generate payload for re-ranker, using the result returned by vector search.
+-- Payload format: https://docs.cohere.com/docs/rerank-overview#example-with-structured-data
+-- Token budget note: Cohere rerank GlobalStandard caps at ~1000 tokens/min. For a
+-- live demo trim to top 5 candidates and truncate each description to ~150 chars.
 DECLARE @documents JSON = (
-    SELECT JSON_ARRAYAGG('Id: ' || property_id || CHAR(10) || 'Content: ' || listing_description RETURNING JSON) FROM #r
-)
+    SELECT JSON_ARRAYAGG('Id: ' || property_id || CHAR(10) || 'Content: ' || LEFT(listing_description, 150) RETURNING JSON)
+    FROM (SELECT TOP 5 * FROM #r ORDER BY vector_distance) t
+);
 
 DECLARE @payload JSON = JSON_OBJECT(
-    'model': 'Cohere-rerank-v4.0-fast',
+    'model': 'Cohere-rerank-v4-0-fast',  -- must match your Foundry deployment name (no dots)
     'query': 'cozy bungalow with original hardwood and charm',
-    'top_n': 10,
+    'top_n': 5,
     'documents': @documents
-)
+);
 
 -- Invoke re-ranker model
 DECLARE @response NVARCHAR(MAX);

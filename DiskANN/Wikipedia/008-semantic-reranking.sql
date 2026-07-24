@@ -1,5 +1,19 @@
 /*
-    Re-Rank results generated in the previous script using CoHere semnatic re-ranker
+    Re-rank the RRF results from 007-hybrid-search.sql using the Cohere Rerank
+    model deployed on Azure AI Foundry.
+
+    Prereqs:
+      - dbo.wikipedia_articles_search_results populated by 007-hybrid-search.sql
+      - A Cohere-rerank-v4.0-fast (or -pro) deployment on an Azure AI Foundry
+        AIServices resource. Note the deployment name you chose — Azure deployment
+        names cannot contain a dot, so a typical deployment name is
+        'Cohere-rerank-v4-0-fast'. The 'model' field in the JSON payload below must
+        match the deployment name, not the raw model name.
+
+    Token budget: the Cohere rerank GlobalStandard SKU frontend enforces a hard
+    ~1000 tokens/min cap regardless of provisioned capacity. For a live demo,
+    trim to the top ~5 hybrid results and truncate each document to ~150 chars
+    (see LEFT([text], 150) below). Full 50-doc payload will hit RateLimitReached.
 */
 -- Uncomment if using SQL Server 2025
 --use WikipediaTest
@@ -14,18 +28,19 @@ begin
 end
 go
 
--- Generate payload for re-ranker, using the result returned by vector search
--- Payload formatted as per https://docs.cohere.com/docs/rerank-overview#example-with-structured-data
+-- Generate payload for re-ranker, using the top RRF results from hybrid search.
+-- Payload format: https://docs.cohere.com/docs/rerank-overview#example-with-structured-data
 DECLARE @documents JSON = (
-    SELECT JSON_ARRAYAGG('Id: ' || id || CHAR(10) || 'Content: ' || [text] RETURNING JSON) FROM wikipedia_articles_search_results
-)
+    SELECT JSON_ARRAYAGG('Id: ' || id || CHAR(10) || 'Content: ' || LEFT([text], 150) RETURNING JSON)
+    FROM (SELECT TOP 5 * FROM wikipedia_articles_search_results ORDER BY rrf_rank) t
+);
 
 DECLARE @payload JSON = JSON_OBJECT(
-    'model': 'Cohere-rerank-v4.0-fast',
+    'model': 'Cohere-rerank-v4-0-fast',  -- must match your Foundry deployment name (no dots)
     'query': (select q from dbo.wikipedia_search_vectors where id = 1),
-    'top_n': 10,
+    'top_n': 5,
     'documents': @documents
-)
+);
 
 -- Invoke re-ranker model
 DECLARE @response NVARCHAR(MAX);
