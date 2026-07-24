@@ -11,7 +11,7 @@ CREATE TABLE dbo.Articles
 -- Step 2: Insert sample data
 -- 10 named rows for storytelling + 90 generated rows.
 -- DiskANN requires at least 100 non-null vectors to build the index.
-INSERT INTO Articles (id, title, content, embedding)
+INSERT INTO dbo.Articles (id, title, content, embedding)
 VALUES
 (1, 'Intro to AI', 'This article introduces AI concepts.', '[0.1, 0.2, 0.3, 0.4, 0.5]'),
 (2, 'Deep Learning', 'Deep learning is a subset of ML.', '[0.2, 0.1, 0.4, 0.3, 0.6]'),
@@ -106,7 +106,7 @@ SELECT
     last_background_task_processed_inserts,
     last_background_task_processed_deletes
 FROM sys.dm_db_vector_indexes
-WHERE OBJECT_NAME(object_id) = 'Articles';
+WHERE object_id = OBJECT_ID(N'dbo.Articles');
 GO
 
 -- Step 9: Clean up

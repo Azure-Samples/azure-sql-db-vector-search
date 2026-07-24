@@ -338,7 +338,7 @@ SELECT
     last_background_task_processed_inserts,
     last_background_task_processed_deletes
 FROM sys.dm_db_vector_indexes
-WHERE OBJECT_NAME(object_id) = 'Articles';
+WHERE object_id = OBJECT_ID(N'dbo.Articles');
 GO
 
 -- What you observed:
