@@ -1,6 +1,9 @@
-"""Load first 500 rows of Datasets/Reviews.csv into dbo.reviews, then
-trigger AI_GENERATE_EMBEDDINGS server-side. Uses mssql-python (the native
-Microsoft first-party Python driver) with Entra Default auth — no token juggling.
+"""Load first 500 rows of Datasets/Reviews.csv into dbo.reviews.
+Uses mssql-python (the native Microsoft first-party Python driver) with
+Entra Default auth — no token juggling.
+
+Embeddings are generated in a separate step: either 001-load-and-embed.sql
+(pure T-SQL) or _embed-reviews.py (batched from Python).
 
 Configure via environment variables (or edit the defaults below):
   MSSQL_SERVER    e.g. myserver.database.windows.net
