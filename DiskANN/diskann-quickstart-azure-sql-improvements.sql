@@ -330,7 +330,7 @@ GO
 
 SELECT 
     OBJECT_NAME(object_id) AS table_name,
-    approximate_staleness_percent,
+    graph_catchup_pending_percent,
     last_background_task_succeeded
 FROM sys.dm_db_vector_indexes
 WHERE OBJECT_NAME(object_id) = 'Articles';
@@ -340,7 +340,7 @@ GO
 --
 -- 1. DML operations (INSERT/UPDATE/DELETE) commit immediately
 -- 2. Changes are visible in search results IMMEDIATELY (no waiting!)
--- 3. approximate_staleness_percent increases briefly after DML
+-- 3. graph_catchup_pending_percent increases briefly after DML
 -- 4. Background task processes changes asynchronously
 -- 5. Staleness decreases as background task completes
 -- 6. last_background_task_processed_* counters increment
