@@ -80,6 +80,10 @@ If you are using the MicroORM Dapper, you can use the [Dapper](./DotNet) sample 
 
 [Semantic Kernel](https://github.com/microsoft/semantic-kernel) is an SDK that simplifies the creation of enterprise AI-enabled applications. Details on support for SQL Server and Azure SQL as vectors stores are available in the [SemanticKernel](./SemanticKernel) folder.
 
+## Workshops
+
+The [FabCon and SQLCon Europe 2026 workshop](./Workshops/FabCon-SQLCon-2026/) provides an end-to-end learning journey from vector search and DiskANN to retrieval-augmented generation (RAG), agents, Model Context Protocol (MCP), and secured AI applications.
+
 ## Resources
 
 - [Create and deploy an Azure OpenAI Service resource](https://learn.microsoft.com/azure/ai-services/openai/how-to/create-resource?pivots=web-portal)
